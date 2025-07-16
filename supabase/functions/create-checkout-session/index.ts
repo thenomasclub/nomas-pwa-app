@@ -64,7 +64,7 @@ serve(async (req) => {
     if (plan === 'monthly') {
       // Get active prices for the membership product
       const prices = await stripe.prices.list({
-        product: 'prod_SdL3dabH9F03TY',
+        product: 'prod_SeWWFDCN8bCb2n',
         active: true,
         limit: 1,
       });

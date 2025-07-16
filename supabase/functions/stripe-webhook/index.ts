@@ -35,7 +35,7 @@ serve(async (req) => {
 
   // Map Stripe product IDs -> membership tiers
   const productToTier: Record<string, string> = {
-    "prod_SdL3dabH9F03TY": "monthly",    // Nomas Exclusive Club - 1 Month
+    "prod_SeWWFDCN8bCb2n": "monthly",    // Nomas Exclusive Club - 1 Month
   };
 
   // Map for checkout session tier mapping
