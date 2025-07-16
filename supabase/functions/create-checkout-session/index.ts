@@ -35,8 +35,6 @@ serve(async (req) => {
     // Map plan to Stripe product ID (you'll need to get the actual price IDs from Stripe)
     const productMapping: Record<string, string> = {
       monthly: "prod_SdL3dabH9F03TY",    // Nomas Exclusive Club - 1 Month
-      quarterly: "prod_SdL422R3xfb43g",  // Nomas Exclusive Club - 3 Months
-      semiannual: "prod_SdjQfxP4bruxAI", // Nomas Exclusive Club - 6 Months
     };
 
     const productId = productMapping[plan];

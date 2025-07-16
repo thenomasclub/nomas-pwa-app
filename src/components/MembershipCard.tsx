@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Crown, CreditCard, Check, Star, Zap, Calendar, Users, Shield } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface MembershipCardProps {
   isPremiumMember: boolean;
@@ -14,32 +13,11 @@ interface MembershipCardProps {
   loading?: boolean;
 }
 
-const PLAN_OPTIONS = [
-  {
-    id: 'monthly',
-    duration: '1 Month',
-    popular: false,
-    savings: null,
-  },
-  {
-    id: 'quarterly', 
-    duration: '3 Months',
-    popular: true,
-    savings: 'Save 15%',
-  },
-  {
-    id: 'semiannual',
-    duration: '6 Months', 
-    popular: false,
-    savings: 'Save 25%',
-  },
-];
-
 const PREMIUM_FEATURES = [
-  { icon: Calendar, text: 'Priority booking access' },
-  { icon: Star, text: 'Exclusive premium events' },
-  { icon: Users, text: 'VIP member community' },
-  { icon: Shield, text: 'Advanced booking protection' },
+  { icon: Calendar, text: 'Complimentary access to all member-only events' },
+  { icon: Users, text: '1 free padel session per month' },
+  { icon: Star, text: 'Monthly Founders Dinner' },
+  { icon: Shield, text: 'Bi-weekly Nomas Minds talk series' },
 ];
 
 export const MembershipCard: React.FC<MembershipCardProps> = ({
@@ -49,39 +27,32 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
   onManageSubscription,
   loading = false
 }) => {
-  const [selectedPlan, setSelectedPlan] = useState<string>('quarterly');
-
   return (
-    <Card className="relative overflow-hidden">
-      {/* Premium gradient background for premium members */}
-      {isPremiumMember && (
-        <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-teal-950/20" />
-      )}
-      
+    <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/30 border-green-200 dark:border-green-800">
       <div className="relative">
-        <CardHeader className="space-y-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Crown className={cn(
-                "h-5 w-5",
-                isPremiumMember ? "text-yellow-500" : "text-muted-foreground"
-              )} />
-              Membership
-            </CardTitle>
-            <Badge 
-              variant={isPremiumMember ? "default" : "secondary"}
-              className={cn(
-                "font-medium",
-                isPremiumMember && "bg-gradient-to-r from-green-600 to-green-700 text-white"
-              )}
-            >
-              {membershipDisplayName}
-            </Badge>
-          </div>
-          <CardDescription>
+        {/* Premium Badge */}
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <Badge className="bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg">
+            <Crown className="h-3 w-3 mr-1" />
+            Premium Membership
+          </Badge>
+        </div>
+
+        <CardHeader className="text-center pt-8 pb-4">
+          <CardTitle className="text-xl font-bold text-green-900 dark:text-green-100">
+            {isPremiumMember ? (
+              <>
+                <Crown className="h-5 w-5 inline mr-2 text-green-600" />
+                {membershipDisplayName}
+              </>
+            ) : (
+              'Upgrade to Premium'
+            )}
+          </CardTitle>
+          <CardDescription className="text-green-700 dark:text-green-300">
             {isPremiumMember 
-              ? "Enjoy all the benefits of your premium membership"
-              : "Unlock exclusive features and priority access"
+              ? 'You have access to all premium features'
+              : 'Unlock exclusive features and priority access'
             }
           </CardDescription>
         </CardHeader>
@@ -138,59 +109,33 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
 
               <Separator />
 
-              {/* Plan Selection */}
+              {/* Monthly Plan Display */}
               <div className="space-y-4">
                 <h4 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">
-                  Choose Your Plan
+                  Monthly Premium Plan
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {PLAN_OPTIONS.map((plan) => (
-                    <button
-                      key={plan.id}
-                      onClick={() => setSelectedPlan(plan.id)}
-                      className={cn(
-                        "relative p-4 rounded-lg border-2 transition-all text-left",
-                        "hover:border-green-200 hover:bg-green-50/50 dark:hover:bg-green-950/20",
-                        selectedPlan === plan.id
-                          ? "border-[#152B14] !bg-[#152B14] text-white dark:!bg-[#152B14]"
-                          : "border-border bg-background"
-                      )}
-                    >
-                      {plan.popular && (
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-                          <Badge className="bg-gradient-to-r from-green-600 to-green-700 text-white text-xs">
-                            <Star className="h-3 w-3 mr-1" />
-                            Popular
-                          </Badge>
-                        </div>
-                      )}
-                      
-                      <div className="space-y-1">
-                        <div className="font-medium">{plan.duration}</div>
-                        {plan.savings && (
-                          <div className={cn(
-                            "text-xs font-medium",
-                            selectedPlan === plan.id 
-                              ? "text-green-200" 
-                              : "text-green-600 dark:text-green-400"
-                          )}>
-                            {plan.savings}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {selectedPlan === plan.id && (
-                        <div className="absolute top-2 right-2">
-                          <Check className="h-4 w-4 text-white" />
-                        </div>
-                      )}
-                    </button>
-                  ))}
+                <div className="bg-white dark:bg-gray-800 rounded-lg border-2 border-[#152B14] p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-lg">Monthly</div>
+                      <div className="text-sm text-muted-foreground">Flexible month-to-month</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-[#152B14]">£50</div>
+                      <div className="text-xs text-muted-foreground">per month</div>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <Badge className="bg-gradient-to-r from-green-600 to-green-700 text-white text-xs">
+                      <Star className="h-3 w-3 mr-1" />
+                      Most Popular
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Upgrade Button */}
                 <Button 
-                  onClick={() => onSubscribe(selectedPlan)}
+                  onClick={() => onSubscribe('monthly')}
                   disabled={loading}
                   className="w-full bg-[#142B13] hover:bg-[#0f1c0e] text-white shadow-lg"
                   size="lg"

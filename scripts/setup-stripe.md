@@ -7,22 +7,28 @@ This guide walks you through completing the Stripe integration setup.
 ### Get Your Price IDs from Stripe Dashboard
 
 1. Go to your Stripe Dashboard → Products
-2. Find your three membership products:
+2. Find your monthly membership product:
    - Nomas Exclusive Club - 1 Month
-   - Nomas Exclusive Club - 3 Months  
-   - Nomas Exclusive Club - 6 Months
 
-3. Click on each product and copy the **Price ID** (starts with `price_`)
+3. Click on the product and copy the **Price ID** (starts with `price_`)
 
 ### Update the Webhook Function
 
-Edit `supabase/functions/stripe-webhook/index.ts` and update the `priceToTier` mapping:
+Edit `supabase/functions/stripe-webhook/index.ts` and update the `productToTier` mapping:
 
 ```typescript
-const priceToTier: Record<string, string> = {
-  "price_YOUR_MONTHLY_PRICE_ID": "monthly",
-  "price_YOUR_QUARTERLY_PRICE_ID": "quarterly", 
-  "price_YOUR_SEMIANNUAL_PRICE_ID": "semiannual",
+const productToTier: Record<string, string> = {
+  "prod_SdL3dabH9F03TY": "monthly",    // Nomas Exclusive Club - 1 Month
+};
+```
+
+### Update the Checkout Session Function
+
+Edit `supabase/functions/create-checkout-session/index.ts` and update the `productMapping`:
+
+```typescript
+const productMapping: Record<string, string> = {
+  monthly: "prod_SdL3dabH9F03TY",    // Nomas Exclusive Club - 1 Month
 };
 ```
 

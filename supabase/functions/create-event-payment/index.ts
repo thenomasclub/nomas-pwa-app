@@ -111,7 +111,7 @@ serve(async (req) => {
     // Create payment intent with custom amount (no price ID needed)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: event.price_cents,
-      currency: 'usd',
+      currency: 'gbp',
       customer: customerId,
       metadata: {
         supabase_user_id: userId,

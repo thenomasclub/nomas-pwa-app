@@ -87,10 +87,6 @@ export const useMembership = () => {
     switch (tier) {
       case 'monthly':
         return 'Monthly Premium';
-      case 'quarterly':
-        return '3-Month Premium';
-      case 'semiannual':
-        return '6-Month Premium';
       default:
         return 'Free';
     }

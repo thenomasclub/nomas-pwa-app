@@ -17,7 +17,7 @@ This implementation uses **Stripe Payment Intents** with custom amounts, which i
 ```sql
 is_free: BOOLEAN         -- true = free for everyone
 is_premium_event: BOOLEAN -- true = ALL users pay (including premium members)
-price_cents: INTEGER     -- 0 = free, 2500 = $25.00, 15000 = $150.00
+price_cents: INTEGER     -- 0 = free, 2500 = £25.00, 15000 = £150.00
 pricing_note: TEXT       -- Optional notes like "Weekend getaway - ALL pay"
 ```
 
@@ -58,7 +58,7 @@ stripe_payment_intent_id: TEXT -- Stripe payment reference
 2. **Edit any event** and set:
    - `is_free`: `true` (free) or `false` (paid)
    - `is_premium_event`: `true` (ALL pay) or `false` (premium members free)
-   - `price_cents`: `0` (free) or amount in cents (e.g., `15000` for $150.00)
+   - `price_cents`: `0` (free) or amount in cents (e.g., `15000` for £150.00)
    - `pricing_note`: Optional description
 
 ### **Example SQL Commands:**
@@ -67,16 +67,16 @@ stripe_payment_intent_id: TEXT -- Stripe payment reference
 -- Make an event free for everyone
 UPDATE events SET is_free = true, price_cents = 0 WHERE id = 'your-event-id';
 
--- Make a regular paid event $25.00 (free for premium members)
+-- Make a regular paid event £25.00 (free for premium members)
 UPDATE events SET is_free = false, is_premium_event = false, price_cents = 2500 WHERE id = 'your-event-id';
 
--- Make a premium event $150.00 (ALL members pay, including premium)
+-- Make a premium event £150.00 (ALL members pay, including premium)
 UPDATE events SET is_free = false, is_premium_event = true, price_cents = 15000 WHERE id = 'your-event-id';
 
--- Make all workshops $20.00 (free for premium members)
+-- Make all workshops £20.00 (free for premium members)
 UPDATE events SET is_free = false, is_premium_event = false, price_cents = 2000 WHERE type = 'workshop';
 
--- Make all weekend getaways premium events $150.00 (ALL pay)
+-- Make all weekend getaways premium events £150.00 (ALL pay)
 UPDATE events SET is_free = false, is_premium_event = true, price_cents = 15000 WHERE title ILIKE '%weekend%';
 ```
 
@@ -102,12 +102,12 @@ ORDER BY b.created_at DESC;
 SELECT 
   e.title,
   COUNT(b.id) as total_bookings,
-  SUM(b.amount_paid_cents) / 100.0 as total_revenue_usd
+  SUM(b.amount_paid_cents) / 100.0 as total_revenue_gbp
 FROM events e
 LEFT JOIN bookings b ON e.id = b.event_id AND b.payment_status = 'paid'
 WHERE e.is_free = false
 GROUP BY e.id, e.title
-ORDER BY total_revenue_usd DESC;
+ORDER BY total_revenue_gbp DESC;
 ```
 
 ## 🔧 **Technical Details**

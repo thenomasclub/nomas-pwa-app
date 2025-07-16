@@ -16,7 +16,7 @@ const MembershipSelectionPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { email, firstName, userId } = (location.state as LocationState) || {};
-  const [selectedPlan, setSelectedPlan] = useState<string>('3monthly');
+  const [selectedPlan, setSelectedPlan] = useState<string>('monthly');
   const [loading, setLoading] = useState(false);
 
   // If no email/firstName/userId in state, redirect to signup
@@ -29,72 +29,28 @@ const MembershipSelectionPage = () => {
     {
       id: 'monthly',
       name: 'Monthly',
-      price: '$29',
-      description: 'Flexible month-to-month membership',
+      price: '£50',
+      description: 'Paid Membership with exclusive benefits',
       features: [
-        'Priority booking access',
-        'Exclusive premium events',
-        'VIP member community',
-        'Advanced booking protection',
-        'Personal fitness tracking',
-        'Early access to new features'
-      ],
-      badge: null,
-      popular: false,
-      cta: 'Payment'
-    },
-    {
-      id: '3monthly',
-      name: '3 Monthly',
-      price: '$79',
-      originalPrice: '$87',
-      description: 'Save with our quarterly plan',
-      features: [
-        'Everything in Monthly',
-        'Save $8 per quarter',
-        'Priority customer support',
-        'Exclusive quarterly bonuses',
-        'Enhanced booking protection',
-        'Advanced analytics'
+        'Complimentary access to all member-only events',
+        '1 free padel session per month',
+        'Monthly Founders Dinner',
+        'Bi-weekly Nomas Minds talk series',
+        'Cancel anytime',
+        'Premium customer support'
       ],
       badge: 'Most Popular',
       popular: true,
       cta: 'Payment'
-    },
-    {
-      id: '6monthly',
-      name: '6 Monthly',
-      price: '$149',
-      originalPrice: '$174',
-      description: 'Best value with our semi-annual plan',
-      features: [
-        'Everything in 3 Monthly',
-        'Save $25 per 6 months',
-        'Exclusive semi-annual perks',
-        'Priority customer support',
-        'Special member meetups',
-        'Premium achievement badges'
-      ],
-      badge: 'Best Value',
-      popular: false,
-      cta: 'Payment'
     }
   ];
 
-  const handlePlanSelection = async (planId: string) => {
+  const handlePlanSelection = async () => {
     setLoading(true);
     
     try {
-      // All plans now require payment, redirect to checkout
-      let stripePlan = 'monthly'; // default
-      
-      if (planId === 'monthly') {
-        stripePlan = 'monthly';
-      } else if (planId === '3monthly') {
-        stripePlan = 'quarterly';
-      } else if (planId === '6monthly') {
-        stripePlan = 'semiannual';
-      }
+      // Only monthly plan is available now
+      const stripePlan = 'monthly';
 
       const response = await supabase.functions.invoke('create-checkout-session', {
         body: { 
@@ -191,11 +147,6 @@ const MembershipSelectionPage = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  {plan.originalPrice && (
-                    <p className="text-sm text-muted-foreground line-through">
-                      {plan.originalPrice}
-                    </p>
-                  )}
                   <p className="text-2xl font-bold text-[#142B13]">
                     {plan.price}
                   </p>
@@ -220,7 +171,7 @@ const MembershipSelectionPage = () => {
         {/* Action Buttons */}
         <div className="space-y-3">
           <Button
-            onClick={() => handlePlanSelection(selectedPlan)}
+            onClick={handlePlanSelection}
             disabled={loading}
             className="w-full h-14 bg-[#142B13] hover:bg-[#0f1c0e] text-white text-lg group"
             size="lg"
