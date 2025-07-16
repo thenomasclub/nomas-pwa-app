@@ -58,38 +58,27 @@ serve(async (req) => {
       });
     }
 
-    // Create or get Stripe price for monthly plan
+    // Get Stripe price for the specific membership product
     let priceId: string;
     
     if (plan === 'monthly') {
-      // Try to find existing price first
-      const existingPrices = await stripe.prices.list({
-        lookup_keys: ['nomas_monthly_50'],
+      // Get active prices for the membership product
+      const prices = await stripe.prices.list({
+        product: 'prod_SeWWFDCN8bCb2n',
         active: true,
         limit: 1,
       });
 
-      if (existingPrices.data.length > 0) {
-        priceId = existingPrices.data[0].id;
-      } else {
-        // Create product and price dynamically
-        const product = await stripe.products.create({
-          name: 'Nomas Exclusive Club - Monthly',
-          description: 'Monthly membership with exclusive benefits',
-        });
-
-        const price = await stripe.prices.create({
-          product: product.id,
-          unit_amount: 5000, // £50.00 in pence
-          currency: 'gbp',
-          recurring: {
-            interval: 'month',
+      if (prices.data.length === 0) {
+        return new Response("No active price found for membership product", { 
+          status: 500,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
           },
-          lookup_key: 'nomas_monthly_50',
         });
-
-        priceId = price.id;
       }
+
+      priceId = prices.data[0].id;
     } else {
       return new Response("Invalid plan", { 
         status: 400,
