@@ -58,13 +58,39 @@ serve(async (req) => {
       });
     }
 
-    // Map plan to Stripe product ID (you'll need to get the actual price IDs from Stripe)
-    const productMapping: Record<string, string> = {
-      monthly: "prod_SdL3dabH9F03TY",    // Nomas Exclusive Club - 1 Month
-    };
+    // Create or get Stripe price for monthly plan
+    let priceId: string;
+    
+    if (plan === 'monthly') {
+      // Try to find existing price first
+      const existingPrices = await stripe.prices.list({
+        lookup_keys: ['nomas_monthly_50'],
+        active: true,
+        limit: 1,
+      });
 
-    const productId = productMapping[plan];
-    if (!productId) {
+      if (existingPrices.data.length > 0) {
+        priceId = existingPrices.data[0].id;
+      } else {
+        // Create product and price dynamically
+        const product = await stripe.products.create({
+          name: 'Nomas Exclusive Club - Monthly',
+          description: 'Monthly membership with exclusive benefits',
+        });
+
+        const price = await stripe.prices.create({
+          product: product.id,
+          unit_amount: 5000, // £50.00 in pence
+          currency: 'gbp',
+          recurring: {
+            interval: 'month',
+          },
+          lookup_key: 'nomas_monthly_50',
+        });
+
+        priceId = price.id;
+      }
+    } else {
       return new Response("Invalid plan", { 
         status: 400,
         headers: {
@@ -72,24 +98,6 @@ serve(async (req) => {
         },
       });
     }
-
-    // Get the default price for this product
-    const prices = await stripe.prices.list({
-      product: productId,
-      active: true,
-      limit: 1,
-    });
-
-    if (prices.data.length === 0) {
-      return new Response("No active price found for this product", { 
-        status: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-        },
-      });
-    }
-
-    const priceId = prices.data[0].id;
 
     // Get user profile to check if they have a Stripe customer ID
     const { data: profile, error: profileError } = await supabase
@@ -142,7 +150,6 @@ serve(async (req) => {
       metadata: {
         supabase_user_id: userId,
         plan: plan,
-        product_id: productId,
         price_id: priceId,
       },
       // Allow promotion codes
