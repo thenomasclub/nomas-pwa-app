@@ -3,6 +3,7 @@ import { useEffect, lazy, Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { Toaster } from 'sonner';
+import { Analytics } from '@vercel/analytics/react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import TermsPage from '@/pages/TermsPage';
@@ -61,6 +62,7 @@ function App() {
         richColors
         closeButton
       />
+      <Analytics />
       <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
