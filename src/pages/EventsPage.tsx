@@ -269,7 +269,7 @@ const EventsPage = () => {
               throw new Error(response.error.message);
             }
 
-            const { client_secret, amount, event_title } = response.data;
+            const { amount, event_title } = response.data;
             
             // For now, show a message about payment required
             // In a full implementation, you'd integrate with Stripe Elements here

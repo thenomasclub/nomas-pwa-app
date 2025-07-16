@@ -29,8 +29,7 @@ const ProfilePage = () => {
     isPremiumMember, 
     membershipDisplayName,
     statusMessage,
-    needsPaymentAttention,
-    isSubscriptionHealthy 
+    needsPaymentAttention
   } = useMembership();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<UserStats | null>(null);

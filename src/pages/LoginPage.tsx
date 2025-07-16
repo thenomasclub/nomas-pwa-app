@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
-import { useAuthStore } from '@/store/authStore';
+
 
 const LoginPage = () => {
   const navigate = useNavigate();

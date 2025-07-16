@@ -1,11 +1,11 @@
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/lib/supabase';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Activity, Users, Trophy, TrendingUp, Clock, MapPin, LogOut } from 'lucide-react';
+import { Calendar, Activity, Users, Trophy, TrendingUp, Clock, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import Layout from '@/components/Layout';
@@ -19,8 +19,7 @@ interface UpcomingEvent {
 }
 
 const DashboardPage = () => {
-  const { user, signOut } = useAuthStore();
-  const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [nextEvent, setNextEvent] = useState<UpcomingEvent | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -64,42 +63,42 @@ const DashboardPage = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    signOut();
-    navigate('/');
-  };
+  // const handleSignOut = async () => {
+  //   await supabase.auth.signOut();
+  //   signOut();
+  //   navigate('/');
+  // };
 
-  const activities = [
-    {
-      title: 'Run',
-      icon: '🏃',
-      description: 'Join group runs',
-      gradient: 'gradient-primary',
-      link: '/events?type=run'
-    },
-    {
-      title: 'Pilates',
-      icon: '🧘',
-      description: 'Strengthen your core',
-      gradient: 'gradient-purple',
-      link: '/events?type=pilates'
-    },
-    {
-      title: 'Padel',
-      icon: '🎾',
-      description: 'Play padel tennis',
-      gradient: 'gradient-success',
-      link: '/events?type=padel'
-    },
-    {
-      title: 'Events',
-      icon: '🎉',
-      description: 'Special activities',
-      gradient: 'gradient-warning',
-      link: '/events?type=event'
-    }
-  ];
+  // const activities = [
+  //   {
+  //     title: 'Run',
+  //     icon: '🏃',
+  //     description: 'Join group runs',
+  //     gradient: 'gradient-primary',
+  //     link: '/events?type=run'
+  //   },
+  //   {
+  //     title: 'Pilates',
+  //     icon: '🧘',
+  //     description: 'Strengthen your core',
+  //     gradient: 'gradient-purple',
+  //     link: '/events?type=pilates'
+  //   },
+  //   {
+  //     title: 'Padel',
+  //     icon: '🎾',
+  //     description: 'Play padel tennis',
+  //     gradient: 'gradient-success',
+  //     link: '/events?type=padel'
+  //   },
+  //   {
+  //     title: 'Events',
+  //     icon: '🎉',
+  //     description: 'Special activities',
+  //     gradient: 'gradient-warning',
+  //     link: '/events?type=event'
+  //   }
+  // ];
 
   const stats = [
     {
