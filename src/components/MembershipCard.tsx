@@ -28,7 +28,7 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
   loading = false
 }) => {
   return (
-    <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/30 border-green-200 dark:border-green-800">
+    <Card className="w-full max-w-md mx-auto bg-[#152B14] border-[#152B14]">
       <div className="relative">
         {/* Premium Badge */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -39,17 +39,17 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
         </div>
 
         <CardHeader className="text-center pt-8 pb-4">
-          <CardTitle className="text-xl font-bold text-green-900 dark:text-green-100">
+          <CardTitle className="text-xl font-bold text-white">
             {isPremiumMember ? (
               <>
-                <Crown className="h-5 w-5 inline mr-2 text-green-600" />
+                <Crown className="h-5 w-5 inline mr-2 text-yellow-400" />
                 {membershipDisplayName}
               </>
             ) : (
               'Upgrade to Premium'
             )}
           </CardTitle>
-          <CardDescription className="text-green-700 dark:text-green-300">
+          <CardDescription className="text-green-100">
             {isPremiumMember 
               ? 'You have access to all premium features'
               : 'Unlock exclusive features and priority access'
@@ -61,7 +61,7 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
           {isPremiumMember ? (
             /* Premium Member Section */
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-400">
+              <div className="flex items-center gap-2 text-sm font-medium text-green-200">
                 <Check className="h-4 w-4" />
                 Premium Active
               </div>
@@ -69,8 +69,8 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 {PREMIUM_FEATURES.map((feature, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm">
-                    <feature.icon className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <span className="text-muted-foreground">{feature.text}</span>
+                    <feature.icon className="h-4 w-4 text-green-300" />
+                    <span className="text-green-100">{feature.text}</span>
                   </div>
                 ))}
               </div>
@@ -94,14 +94,14 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
             <div className="space-y-6">
               {/* Features Preview */}
               <div className="space-y-3">
-                <h4 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">
+                <h4 className="font-medium text-sm uppercase tracking-wide text-green-200">
                   Premium Benefits
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {PREMIUM_FEATURES.map((feature, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
-                      <feature.icon className="h-4 w-4 text-green-600 dark:text-green-400" />
-                      <span>{feature.text}</span>
+                      <feature.icon className="h-4 w-4 text-green-300" />
+                      <span className="text-green-100">{feature.text}</span>
                     </div>
                   ))}
                 </div>
@@ -111,7 +111,7 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
 
               {/* Monthly Plan Display */}
               <div className="space-y-4">
-                <h4 className="font-medium text-sm uppercase tracking-wide text-muted-foreground">
+                <h4 className="font-medium text-sm uppercase tracking-wide text-green-200">
                   Monthly Premium Plan
                 </h4>
                 <div className="bg-white dark:bg-gray-800 rounded-lg border-2 border-[#152B14] p-4">
@@ -144,7 +144,7 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
                   {loading ? 'Processing...' : 'Upgrade to Premium'}
                 </Button>
 
-                <p className="text-xs text-center text-muted-foreground">
+                <p className="text-xs text-center text-green-200">
                   Cancel anytime. No commitment required.
                 </p>
               </div>
