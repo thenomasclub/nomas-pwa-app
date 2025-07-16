@@ -7,13 +7,34 @@ import Stripe from "https://esm.sh/stripe@12.17.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      },
+    });
+  }
+
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return new Response('Method not allowed', { 
+      status: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 
   const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY");
   if (!stripeSecret) {
-    return new Response("Stripe secret key not configured", { status: 500 });
+    return new Response("Stripe secret key not configured", { 
+      status: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 
   const stripe = new Stripe(stripeSecret, {
@@ -29,7 +50,12 @@ serve(async (req) => {
     const { plan, userId } = await req.json();
     
     if (!plan || !userId) {
-      return new Response("Missing plan or userId", { status: 400 });
+      return new Response("Missing plan or userId", { 
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
     }
 
     // Map plan to Stripe product ID (you'll need to get the actual price IDs from Stripe)
@@ -39,7 +65,12 @@ serve(async (req) => {
 
     const productId = productMapping[plan];
     if (!productId) {
-      return new Response("Invalid plan", { status: 400 });
+      return new Response("Invalid plan", { 
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
     }
 
     // Get the default price for this product
@@ -50,7 +81,12 @@ serve(async (req) => {
     });
 
     if (prices.data.length === 0) {
-      return new Response("No active price found for this product", { status: 400 });
+      return new Response("No active price found for this product", { 
+        status: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
     }
 
     const priceId = prices.data[0].id;
@@ -63,7 +99,12 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile) {
-      return new Response("User not found", { status: 404 });
+      return new Response("User not found", { 
+        status: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
     }
 
     let customerId = profile.stripe_customer_id;
@@ -119,7 +160,10 @@ serve(async (req) => {
       JSON.stringify({ url: session.url }),
       { 
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
       }
     );
 
@@ -129,7 +173,10 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        }
       }
     );
   }
