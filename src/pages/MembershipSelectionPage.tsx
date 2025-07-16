@@ -84,7 +84,7 @@ const MembershipSelectionPage = () => {
   };
 
   return (
-    <div className="min-h-screen overflow-y-auto flex flex-col items-center justify-center bg-background px-4 py-8">
+    <div className="min-h-screen overflow-y-auto flex flex-col items-center justify-center px-4 py-8" style={{ backgroundColor: '#0F1D0E' }}>
       <div className="w-full max-w-2xl animate-fade-in">
 
         {/* Logo top-left */}
@@ -96,13 +96,13 @@ const MembershipSelectionPage = () => {
 
         {/* Welcome Message */}
         <div className="mb-8 text-center pt-16">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3 text-white">
             Welcome, {firstName}!
           </h1>
-          <p className="text-xl text-muted-foreground max-w-md mx-auto mb-2">
+          <p className="text-xl text-gray-200 max-w-md mx-auto mb-2">
             Choose the perfect membership to unlock your potential
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-300">
             You can upgrade or downgrade anytime
           </p>
         </div>
@@ -115,10 +115,10 @@ const MembershipSelectionPage = () => {
               onClick={() => setSelectedPlan(plan.id)}
               className={cn(
                 "relative p-6 rounded-xl border-2 cursor-pointer transition-all group",
-                "hover:border-green-300 hover:shadow-lg hover:scale-[1.02]",
+                "hover:border-green-400 hover:shadow-lg hover:scale-[1.02]",
                 selectedPlan === plan.id
-                  ? "border-[#142B13] bg-green-50/50 dark:bg-green-950/20 shadow-lg"
-                  : "border-border bg-background hover:bg-green-50/20 dark:hover:bg-green-950/10"
+                  ? "border-green-400 bg-green-900/30 shadow-lg"
+                  : "border-gray-600 bg-gray-800/30 hover:bg-green-900/20"
               )}
             >
               {/* Popular/Badge indicators */}
@@ -139,15 +139,15 @@ const MembershipSelectionPage = () => {
 
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-bold mb-1">
+                  <h3 className="text-xl font-bold mb-1 text-white">
                     {plan.name}
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-2">
+                  <p className="text-sm text-gray-300 mb-2">
                     {plan.description}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-[#142B13]">
+                  <p className="text-2xl font-bold text-green-400">
                     {plan.price}
                   </p>
                 </div>
@@ -156,8 +156,8 @@ const MembershipSelectionPage = () => {
               {/* Features */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                 {plan.features.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm">
-                    <div className="h-2 w-2 rounded-full bg-green-600 flex-shrink-0"></div>
+                  <div key={index} className="flex items-center gap-2 text-sm text-gray-200">
+                    <div className="h-2 w-2 rounded-full bg-green-400 flex-shrink-0"></div>
                     <span>{feature}</span>
                   </div>
                 ))}
@@ -189,7 +189,7 @@ const MembershipSelectionPage = () => {
           <Button
             variant="ghost"
             onClick={handleSkip}
-            className="w-full text-muted-foreground hover:text-foreground"
+            className="w-full text-gray-300 hover:text-white hover:bg-gray-700/30"
           >
             Continue as a free member
           </Button>
@@ -197,10 +197,10 @@ const MembershipSelectionPage = () => {
 
         {/* Trust indicators */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-muted-foreground mb-2">
+          <p className="text-xs text-gray-400 mb-2">
             Secure payment • 30-day money-back guarantee • Cancel anytime
           </p>
-          <div className="flex justify-center items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex justify-center items-center gap-4 text-xs text-gray-400">
             <span>1,247+ members</span>
             <span>SSL secure</span>
             <span>4.9/5 rating</span>
