@@ -15,23 +15,34 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    console.log('Attempting login with:', { email, hasPassword: !!password });
+    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+
     try {
-      // Production authentication
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (error) throw error;
+      console.log('Login response:', { data, error });
 
-      navigate('/home');
+      if (error) {
+        console.error('Login error details:', error);
+        throw error;
+      }
+
+      if (data?.user) {
+        console.log('Login successful, user:', data.user.id);
+        navigate('/dashboard');
+      }
     } catch (error: any) {
-      setError(error.message);
+      console.error('Full login error:', error);
+      setError(error.message || 'An error occurred during sign in');
     } finally {
       setLoading(false);
     }
@@ -58,7 +69,7 @@ const LoginPage = () => {
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-3 pt-4">
+        <form onSubmit={handleSignIn} className="space-y-3 pt-4">
           {error && (
             <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md animate-slide-down">
               {error}
