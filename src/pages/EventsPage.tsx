@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import EventParticipants from '@/components/EventParticipants';
+import PaymentModal from '@/components/PaymentModal';
 
 interface Event {
   id: string;
@@ -70,11 +71,22 @@ const EventsPage = () => {
   const [pricingFilter, setPricingFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [bookingLoading, setBookingLoading] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentData, setPaymentData] = useState<any>(null);
   const eventId = searchParams.get('id');
 
-  const formatIDR = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+  const formatIDR = (val: number) => {
+    // Ensure proper formatting for Indonesian Rupiah
+    return new Intl.NumberFormat('id-ID', { 
+      style: 'currency', 
+      currency: 'IDR', 
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0
+    }).format(val);
+  };
 
   // Determine if any filter is active or panel is open
   const isFilterActive = [
@@ -86,7 +98,9 @@ const EventsPage = () => {
 
   useEffect(() => {
     fetchEvents();
-  }, [typeFilter, dateFilter, user, eventId]);
+  }, [typeFilter, dateFilter, pricingFilter, user, eventId]);
+
+
 
   const fetchEvents = async () => {
     try {
@@ -170,6 +184,13 @@ const EventsPage = () => {
       }
       // Note: 'all' filter doesn't add any date constraints, showing both upcoming and past events
 
+      // Apply pricing filter
+      if (pricingFilter === 'free') {
+        query = query.eq('is_free', true);
+      } else if (pricingFilter === 'paying') {
+        query = query.eq('is_free', false);
+      }
+
       const { data, error } = await query;
 
       if (error) throw error;
@@ -183,7 +204,7 @@ const EventsPage = () => {
           .from('bookings')
           .select('event_id')
           .eq('status', 'confirmed')
-          .in('event_id', eventIds);
+          .eq('event_id', eventIds);
 
         // Count bookings per event
         const bookingCounts = confirmedCounts?.reduce((acc, booking) => {
@@ -259,7 +280,7 @@ const EventsPage = () => {
         const requiresPayment = !event.is_free && !hasActivePremium;
 
         if (requiresPayment) {
-          // Redirect to payment flow
+          // Create payment intent
           try {
             const response = await supabase.functions.invoke('create-event-payment', {
               body: { eventId, userId: user.id }
@@ -269,14 +290,16 @@ const EventsPage = () => {
               throw new Error(response.error.message);
             }
 
-            const { amount, event_title } = response.data;
+            const { client_secret, amount, event_title, currency } = response.data;
             
-            // For now, show a message about payment required
-            // In a full implementation, you'd integrate with Stripe Elements here
-            toast.info(`Payment required: $${(amount / 100).toFixed(2)} for ${event_title}`);
-            
-            // TODO: Implement Stripe Elements payment flow
-            // This would typically redirect to a payment page or open a payment modal
+            // Open payment modal
+            setPaymentData({
+              clientSecret: client_secret,
+              amount,
+              eventTitle: event_title,
+              currency: currency || 'idr'
+            });
+            setShowPaymentModal(true);
             
           } catch (paymentError: any) {
             if (paymentError.message.includes('Premium members get free access')) {
@@ -323,20 +346,35 @@ const EventsPage = () => {
     }
   };
 
+  const handlePaymentSuccess = async () => {
+    toast.success('Payment successful! Your booking has been confirmed.');
+    await fetchEvents();
+  };
+
   // Icons and gradients by type removed; styling handled via image/background only.
 
-  // Filter events based on search term and other filters, then sort properly
+  // Enhanced search and filter functionality
   const filteredEvents = events.filter(event => {
-    // Apply search filter
+    // Apply search filter with enhanced search capabilities
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      if (
-        !(
-          event.title.toLowerCase().includes(searchLower) ||
-          event.description.toLowerCase().includes(searchLower) ||
-          event.location.toLowerCase().includes(searchLower)
-        )
-      ) {
+      const searchTerms = searchLower.split(' ').filter(term => term.length > 0);
+      
+      // Check if all search terms match any field
+      const matchesSearch = searchTerms.every(term => {
+        return (
+          event.title.toLowerCase().includes(term) ||
+          event.description.toLowerCase().includes(term) ||
+          event.location.toLowerCase().includes(term) ||
+          event.type.toLowerCase().includes(term) ||
+          (event.pricing_note && event.pricing_note.toLowerCase().includes(term)) ||
+          // Search in formatted date
+          format(new Date(event.date), 'EEEE, MMMM d, yyyy').toLowerCase().includes(term) ||
+          format(new Date(event.date), 'h:mm a').toLowerCase().includes(term)
+        );
+      });
+      
+      if (!matchesSearch) {
         return false;
       }
     }
@@ -584,22 +622,66 @@ const EventsPage = () => {
               <div className="mb-8 animate-fade-in">
                 {/* Search + Filter Row */}
                 <div className="flex flex-col gap-4">
-                  <div className="flex flex-row flex-wrap items-center gap-3">
+                                    <div className="flex flex-row flex-wrap items-center gap-3">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search events, locations..."
+                        placeholder="Search events, locations, dates, types..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setShowSearchSuggestions(e.target.value.length > 0);
+                        }}
+                        onFocus={() => setShowSearchSuggestions(searchTerm.length > 0)}
+                        onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 200)}
                         className="pl-10 pr-10"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape') {
+                            setSearchTerm('');
+                            setShowSearchSuggestions(false);
+                          }
+                        }}
                       />
                       {searchTerm && (
                         <button
-                          onClick={() => setSearchTerm('')}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          onClick={() => {
+                            setSearchTerm('');
+                            setShowSearchSuggestions(false);
+                          }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          title="Clear search"
                         >
                           <X className="h-4 w-4" />
                         </button>
+                      )}
+                      
+                      {/* Search Suggestions */}
+                      {showSearchSuggestions && searchTerm && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                          <div className="p-2">
+                            <div className="text-xs font-medium text-muted-foreground mb-2 px-2">Quick searches:</div>
+                            {[
+                              'run', 'pilates', 'padel', 'event',
+                              'Central Park', 'Studio', 'Beach',
+                              'beginner', 'advanced', 'tournament',
+                              'free', 'paid', 'featured'
+                            ].filter(suggestion => 
+                              suggestion.toLowerCase().includes(searchTerm.toLowerCase())
+                            ).slice(0, 6).map((suggestion, index) => (
+                              <button
+                                key={index}
+                                onClick={() => {
+                                  setSearchTerm(suggestion);
+                                  setShowSearchSuggestions(false);
+                                }}
+                                className="w-full text-left px-2 py-1.5 text-sm hover:bg-muted rounded transition-colors"
+                              >
+                                <Search className="inline h-3 w-3 mr-2 text-muted-foreground" />
+                                {suggestion}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
 
@@ -701,6 +783,17 @@ const EventsPage = () => {
                         ? `No events found for "${searchTerm}"`
                         : 'No events found matching your filters.'}
                     </p>
+                    {searchTerm && (
+                      <div className="mb-4 text-sm text-muted-foreground">
+                        <p>Try searching for:</p>
+                        <ul className="mt-2 space-y-1">
+                          <li>• Event types: "run", "pilates", "padel", "event"</li>
+                          <li>• Locations: "Central Park", "Studio A", "Beach"</li>
+                          <li>• Dates: "today", "this week", "next month"</li>
+                          <li>• Keywords: "beginner", "advanced", "tournament"</li>
+                        </ul>
+                      </div>
+                    )}
                     <Button variant="outline" onClick={clearFilters}>
                       Clear filters
                     </Button>
@@ -709,9 +802,28 @@ const EventsPage = () => {
               ) : (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm text-muted-foreground">
-                      Showing {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
+                        {searchTerm && (
+                          <span className="ml-1">
+                            for "<span className="font-medium">{searchTerm}</span>"
+                          </span>
+                        )}
+                      </p>
+                      {searchTerm && (
+                        <Badge variant="outline" className="text-xs">
+                          Search Results
+                        </Badge>
+                      )}
+                    </div>
+                    {filteredEvents.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        {events.length !== filteredEvents.length && (
+                          <span>Filtered from {events.length} total events</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEvents.map((event, index) => {
@@ -922,6 +1034,22 @@ const EventsPage = () => {
           )}
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {paymentData && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setPaymentData(null);
+          }}
+          eventTitle={paymentData.eventTitle}
+          amount={paymentData.amount}
+          currency={paymentData.currency}
+          clientSecret={paymentData.clientSecret}
+          onSuccess={handlePaymentSuccess}
+        />
+      )}
     </Layout>
   );
 };

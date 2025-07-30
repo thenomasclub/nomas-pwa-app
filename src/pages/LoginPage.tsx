@@ -38,7 +38,7 @@ const LoginPage = () => {
 
       if (data?.user) {
         console.log('Login successful, user:', data.user.id);
-        navigate('/dashboard');
+        navigate('/home');
       }
     } catch (error: any) {
       console.error('Full login error:', error);

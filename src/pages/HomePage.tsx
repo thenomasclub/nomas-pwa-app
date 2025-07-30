@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -38,7 +39,7 @@ const HomePage = () => {
           </p>
           
           {/* CTA Buttons - Responsive width */}
-          <div className="flex flex-col gap-3 sm:gap-4 items-center">
+          <div className="flex flex-col gap-3 sm:gap-4 items-center mb-12">
             <Button 
               asChild 
               size="lg" 

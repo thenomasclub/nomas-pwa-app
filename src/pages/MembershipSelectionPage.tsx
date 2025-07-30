@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface LocationState {
   email: string;
@@ -18,6 +19,21 @@ const MembershipSelectionPage = () => {
   const { email, firstName, userId } = (location.state as LocationState) || {};
   const [selectedPlan, setSelectedPlan] = useState<string>('monthly');
   const [loading, setLoading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Handle payment cancel from Stripe
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'canceled') {
+      // Show cancel message
+      toast.error('Payment was canceled. You can try again or choose the free plan.');
+      
+      // Clear the payment parameter from URL
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('payment');
+      setSearchParams(newParams);
+    }
+  }, [searchParams, setSearchParams]);
 
   // If no email/firstName/userId in state, redirect to signup
   if (!email || !firstName || !userId) {
@@ -71,16 +87,16 @@ const MembershipSelectionPage = () => {
       }
     } catch (error: any) {
       console.error('Error processing plan selection:', error);
-      // Fallback to free plan if payment fails
-      navigate('/home');
+      // Fallback to email confirmation page if payment fails
+      navigate('/signup-success', { state: { email } });
     } finally {
       setLoading(false);
     }
   };
 
   const handleSkip = () => {
-    // User chose free membership, redirect to the main app
-    navigate('/home');
+    // User chose free membership, redirect to email confirmation
+    navigate('/signup-success', { state: { email } });
   };
 
   return (

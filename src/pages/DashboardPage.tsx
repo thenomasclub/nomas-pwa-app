@@ -63,43 +63,6 @@ const DashboardPage = () => {
     }
   };
 
-  // const handleSignOut = async () => {
-  //   await supabase.auth.signOut();
-  //   signOut();
-  //   navigate('/');
-  // };
-
-  // const activities = [
-  //   {
-  //     title: 'Run',
-  //     icon: '🏃',
-  //     description: 'Join group runs',
-  //     gradient: 'gradient-primary',
-  //     link: '/events?type=run'
-  //   },
-  //   {
-  //     title: 'Pilates',
-  //     icon: '🧘',
-  //     description: 'Strengthen your core',
-  //     gradient: 'gradient-purple',
-  //     link: '/events?type=pilates'
-  //   },
-  //   {
-  //     title: 'Padel',
-  //     icon: '🎾',
-  //     description: 'Play padel tennis',
-  //     gradient: 'gradient-success',
-  //     link: '/events?type=padel'
-  //   },
-  //   {
-  //     title: 'Events',
-  //     icon: '🎉',
-  //     description: 'Special activities',
-  //     gradient: 'gradient-warning',
-  //     link: '/events?type=event'
-  //   }
-  // ];
-
   const stats = [
     {
       title: 'Total Bookings',
@@ -107,7 +70,8 @@ const DashboardPage = () => {
       subtitle: 'This month',
       icon: Activity,
       trend: '+15%',
-      gradient: 'gradient-primary'
+      gradient: 'gradient-primary',
+      backgroundImage: 'https://uhkksexuecjfzmgdbwax.supabase.co/storage/v1/object/sign/image/APP%20EVENT%204.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83YzRiNGZjNC0yZTMzLTRiNzYtODk1ZS1lM2FjOGNlODI2YjMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpbWFnZS9BUFAgRVZFTlQgNC5qcGciLCJpYXQiOjE3NTM4NzExMDgsImV4cCI6MTgxNjk0MzEwOH0.le4hDC-cC0STT18TBfLnbm5pwgieuaQWRrI0KnwApBw'
     },
     {
       title: 'Activities Joined',
@@ -115,7 +79,8 @@ const DashboardPage = () => {
       subtitle: 'Different types',
       icon: Users,
       trend: '+2',
-      gradient: 'gradient-success'
+      gradient: 'gradient-success',
+      backgroundImage: 'https://uhkksexuecjfzmgdbwax.supabase.co/storage/v1/object/sign/image/APP%20EVENT%203.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83YzRiNGZjNC0yZTMzLTRiNzYtODk1ZS1lM2FjOGNlODI2YjMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpbWFnZS9BUFAgRVZFTlQgMy5qcGciLCJpYXQiOjE3NTM4NzEwODIsImV4cCI6MTgxNjk0MzA4Mn0.29pC3af8PaMR3lhpT5ESmhSYxZ1QE7v4VkT63CzZuJc'
     },
     {
       title: 'Achievement',
@@ -123,14 +88,18 @@ const DashboardPage = () => {
       subtitle: 'Member status',
       icon: Trophy,
       trend: 'Gold',
-      gradient: 'gradient-warning'
+      gradient: 'gradient-warning',
+      backgroundImage: 'https://uhkksexuecjfzmgdbwax.supabase.co/storage/v1/object/sign/image/APP%20EVENT%204.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83YzRiNGZjNC0yZTMzLTRiNzYtODk1ZS1lM2FjOGNlODI2YjMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpbWFnZS9BUFAgRVZFTlQgNC5qcGciLCJpYXQiOjE3NTM4NzExMDgsImV4cCI6MTgxNjk0MzEwOH0.le4hDC-cC0STT18TBfLnbm5pwgieuaQWRrI0KnwApBw'
     }
   ];
 
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-        <div className="container mx-auto px-4 py-8">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
+        
+        <div className="container mx-auto px-4 py-8 relative">
           {/* Dashboard Header */}
           <div className="mb-8 animate-fade-in">
             <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -138,45 +107,57 @@ const DashboardPage = () => {
 
           {/* Next Event Card */}
           {!loading && nextEvent && (
-            <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 animate-slide-up">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 rounded-full bg-primary/10">
-                      <Calendar className="h-5 w-5 text-primary" />
-                    </div>
-                    <CardTitle>Your Next Activity</CardTitle>
-                  </div>
-                  <Badge variant="outline" className="bg-background">
-                    Upcoming
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-semibold">{nextEvent.title}</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        <span>{format(new Date(nextEvent.date), 'EEEE, MMMM d at h:mm a')}</span>
+            <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 animate-slide-up relative overflow-hidden">
+              {/* Background image for next event */}
+              <div className="absolute inset-0">
+                <img
+                  src="https://uhkksexuecjfzmgdbwax.supabase.co/storage/v1/object/sign/image/APP%20EVENT%203.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83YzRiNGZjNC0yZTMzLTRiNzYtODk1ZS1lM2FjOGNlODI2YjMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpbWFnZS9BUFAgRVZFTlQgMy5qcGciLCJpYXQiOjE3NTM4NzEwODIsImV4cCI6MTgxNjk0MzA4Mn0.29pC3af8PaMR3lhpT5ESmhSYxZ1QE7v4VkT63CzZuJc"
+                  alt="Next event background"
+                  className="w-full h-full object-cover opacity-20"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5" />
+              </div>
+              
+              <div className="relative z-10">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-full bg-primary/10">
+                        <Calendar className="h-5 w-5 text-primary" />
                       </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                        <span>{nextEvent.location}</span>
+                      <CardTitle>Your Next Activity</CardTitle>
+                    </div>
+                    <Badge variant="outline" className="bg-background">
+                      Upcoming
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <h3 className="text-2xl font-semibold">{nextEvent.title}</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span>{format(new Date(nextEvent.date), 'EEEE, MMMM d at h:mm a')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <span>{nextEvent.location}</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-end justify-end gap-2">
+                      <Button size="sm" asChild variant="outline">
+                        <Link to="/bookings">View All Bookings</Link>
+                      </Button>
+                      <Button size="sm">
+                        Add to Calendar
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-end justify-end gap-2">
-                    <Button size="sm" asChild variant="outline">
-                      <Link to="/bookings">View All Bookings</Link>
-                    </Button>
-                    <Button size="sm">
-                      Add to Calendar
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              </div>
             </Card>
           )}
 
@@ -190,32 +171,44 @@ const DashboardPage = () => {
                 return (
                   <Card 
                     key={stat.title} 
-                    className="relative overflow-hidden animate-slide-up"
+                    className="relative overflow-hidden animate-slide-up group hover:shadow-lg transition-shadow"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className={`absolute top-0 right-0 w-32 h-32 ${stat.gradient} opacity-10 blur-3xl`} />
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        {stat.title}
-                      </CardTitle>
-                      <div className={`p-2 rounded-full ${stat.gradient} text-white`}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-baseline justify-between">
-                        <div>
-                          <div className="text-2xl font-bold">{stat.value}</div>
-                          <p className="text-xs text-muted-foreground">
-                            {stat.subtitle}
-                          </p>
+                    {/* Background image */}
+                    <div className="absolute inset-0">
+                      <img
+                        src={stat.backgroundImage}
+                        alt={`${stat.title} background`}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-black/40" />
+                    </div>
+                    
+                    <div className="relative z-10">
+                      <div className={`absolute top-0 right-0 w-32 h-32 ${stat.gradient} opacity-10 blur-3xl`} />
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-white">
+                          {stat.title}
+                        </CardTitle>
+                        <div className={`p-2 rounded-full ${stat.gradient} text-white`}>
+                          <Icon className="h-4 w-4" />
                         </div>
-                        <div className="flex items-center gap-1 text-xs font-medium text-green-600">
-                          <TrendingUp className="h-3 w-3" />
-                          {stat.trend}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-baseline justify-between">
+                          <div>
+                            <div className="text-2xl font-bold text-white">{stat.value}</div>
+                            <p className="text-xs text-white/80">
+                              {stat.subtitle}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs font-medium text-green-300">
+                            <TrendingUp className="h-3 w-3" />
+                            {stat.trend}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
+                      </CardContent>
+                    </div>
                   </Card>
                 );
               })}
@@ -223,8 +216,18 @@ const DashboardPage = () => {
           </div>
 
           {/* Motivational Quote */}
-          <Card className="mt-8 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-            <CardContent className="p-6 text-center">
+          <Card className="mt-8 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20 relative overflow-hidden">
+            {/* Background image for motivational quote */}
+            <div className="absolute inset-0">
+              <img
+                src="https://uhkksexuecjfzmgdbwax.supabase.co/storage/v1/object/sign/image/APP%20EVENT%204.jpg?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV83YzRiNGZjNC0yZTMzLTRiNzYtODk1ZS1lM2FjOGNlODI2YjMiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpbWFnZS9BUFAgRVZFTlQgNC5qcGciLCJpYXQiOjE3NTM4NzExMDgsImV4cCI6MTgxNjk0MzEwOH0.le4hDC-cC0STT18TBfLnbm5pwgieuaQWRrI0KnwApBw"
+                alt="Motivational background"
+                className="w-full h-full object-cover opacity-30"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5" />
+            </div>
+            
+            <CardContent className="p-6 text-center relative z-10">
               <p className="text-lg font-medium italic">
                 "The only bad workout is the one that didn't happen"
               </p>

@@ -88,7 +88,7 @@ serve(async (req) => {
     // Get or create Stripe customer
     let customerId = profile.stripe_customer_id;
     if (!customerId) {
-      const { data: userData } = await supabase.auth.admin.getUserById(userId);
+      const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         return new Response("User not found", { status: 404 });
       }
@@ -108,10 +108,10 @@ serve(async (req) => {
         .eq('id', userId);
     }
 
-    // Create payment intent with custom amount (no price ID needed)
+    // Create payment intent with IDR currency
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: event.price_cents,
-      currency: 'gbp',
+      amount: event.price_cents, // 200,000 IDR = 2,000,000 cents
+      currency: 'idr', // Indonesian Rupiah
       customer: customerId,
       metadata: {
         supabase_user_id: userId,
@@ -143,7 +143,7 @@ serve(async (req) => {
       return new Response("Failed to create booking", { status: 500 });
     }
 
-    console.log(`✅ Payment intent created for event ${eventId}, user ${userId}, amount ${event.price_cents} cents`);
+    console.log(`✅ Payment intent created for event ${eventId}, user ${userId}, amount ${event.price_cents} IDR`);
 
     return new Response(
       JSON.stringify({
@@ -151,6 +151,7 @@ serve(async (req) => {
         payment_intent_id: paymentIntent.id,
         amount: event.price_cents,
         event_title: event.title,
+        currency: 'idr',
       }),
       { 
         status: 200,

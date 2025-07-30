@@ -2,7 +2,7 @@
 
 ## Overall Assessment: **Yes, with minor suggestions**
 
-This is a well-structured and realistic sprint plan for building a PWA for Nomas. The progression from foundations → core features → polish → admin tools follows software development best practices.
+This is a well-structured and realistic sprint plan for building a PWA for Nomas. The progression from foundations → core features → polish follows software development best practices.
 
 ## Strengths
 
@@ -41,7 +41,7 @@ This is a well-structured and realistic sprint plan for building a PWA for Nomas
 ### 3. **Security Considerations**
 - Add rate limiting for bookings (prevent spam)
 
-- Audit logging for admin actions
+- Audit logging for system actions
 
 ### 4. **Mobile-First Testing**
 - Explicitly test on actual mobile devices, not just responsive view
@@ -64,7 +64,7 @@ This is a well-structured and realistic sprint plan for building a PWA for Nomas
 - **Sprint 0**: Add basic monitoring/alerting setup
 - **Sprint 1**: Include basic email notifications for bookings
 - **Sprint 2**: Add booking confirmation emails with calendar attachments
-- **Sprint 3**: Include basic reporting for admins (booking statistics)
+- **Sprint 3**: Include basic reporting (booking statistics)
 
 ## Conclusion
 

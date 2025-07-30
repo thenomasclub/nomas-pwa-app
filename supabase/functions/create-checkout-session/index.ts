@@ -134,7 +134,7 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/home?payment=success`,
+      success_url: `${req.headers.get('origin')}/signup-success?payment=success`,
       cancel_url: `${req.headers.get('origin')}/membership-selection?payment=canceled`,
       metadata: {
         supabase_user_id: userId,

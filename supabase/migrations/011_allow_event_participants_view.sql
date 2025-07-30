@@ -14,7 +14,7 @@ CREATE POLICY "Users can view profiles of event participants" ON profiles
         )
     );
 
--- Add policy to allow viewing profiles of users who have booked events (for event organizers/admins)
+-- Add policy to allow viewing profiles of users who have booked events (for event participants)
 -- This allows viewing profiles of anyone who has booked any event
 CREATE POLICY "Users can view profiles of event bookers" ON profiles
     FOR SELECT USING (

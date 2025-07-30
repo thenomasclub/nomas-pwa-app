@@ -23,7 +23,7 @@ CREATE INDEX IF NOT EXISTS idx_webhook_logs_event_type ON webhook_logs(event_typ
 CREATE INDEX IF NOT EXISTS idx_webhook_logs_processed_at ON webhook_logs(processed_at);
 CREATE INDEX IF NOT EXISTS idx_webhook_logs_status ON webhook_logs(status);
 
--- Enable RLS for webhook_logs (admin access only)
+-- Enable RLS for webhook_logs (service role access only)
 ALTER TABLE webhook_logs ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies for webhook_logs (service role can read/write, users cannot access)

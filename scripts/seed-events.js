@@ -102,7 +102,6 @@ events.forEach((event, index) => {
 });
 
 console.log('\n\nTo add these events:');
-console.log('1. Go to the admin panel (/admin)');
-console.log('2. Navigate to Event Management');
-console.log('3. Click "Create Event" and add each event manually');
-console.log('\nOr use the Supabase dashboard to insert them directly.'); 
+console.log('1. Use the Supabase dashboard to insert them directly');
+console.log('2. Or run SQL commands to insert the events');
+console.log('3. Or use the Supabase CLI to seed the database'); 
