@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Crown, CreditCard, Check, Star, Zap, Calendar, Users, Shield } from 'lucide-react';
+import { Crown, CreditCard, Check, Star, Zap, Calendar, Users, Shield, Coffee } from 'lucide-react';
 
 interface MembershipCardProps {
   isPremiumMember: boolean;
@@ -14,10 +14,10 @@ interface MembershipCardProps {
 }
 
 const PREMIUM_FEATURES = [
-  { icon: Calendar, text: 'Complimentary access to all member-only events' },
-  { icon: Users, text: '1 free padel session per month' },
-  { icon: Star, text: 'Monthly Founders Dinner' },
-  { icon: Shield, text: 'Bi-weekly Nomas Minds talk series' },
+  { icon: Users, text: 'A private community of experts in business, trading, fitness, travel & content creation' },
+  { icon: Calendar, text: 'Exclusive monthly events hosted by The Nomas Club' },
+  { icon: Coffee, text: 'Special perks & discounts across Bali: coffee shops, gyms, restaurants, nightlife & more' },
+  { icon: Shield, text: 'Business events that connect you to the right people' },
 ];
 
 export const MembershipCard: React.FC<MembershipCardProps> = ({
@@ -66,10 +66,10 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
                 Premium Active
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {PREMIUM_FEATURES.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm">
-                    <feature.icon className="h-4 w-4 text-green-300" />
+                  <div key={index} className="flex items-start gap-2 text-sm">
+                    <feature.icon className="h-4 w-4 text-green-300 mt-0.5 flex-shrink-0" />
                     <span className="text-green-100">{feature.text}</span>
                   </div>
                 ))}
@@ -97,10 +97,10 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
                 <h4 className="font-medium text-sm uppercase tracking-wide text-green-200">
                   Premium Benefits
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2">
                   {PREMIUM_FEATURES.map((feature, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
-                      <feature.icon className="h-4 w-4 text-green-300" />
+                    <div key={index} className="flex items-start gap-2 text-sm">
+                      <feature.icon className="h-4 w-4 text-green-300 mt-0.5 flex-shrink-0" />
                       <span className="text-green-100">{feature.text}</span>
                     </div>
                   ))}

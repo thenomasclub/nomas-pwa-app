@@ -74,7 +74,7 @@ const SignUpPage = () => {
       }
 
       // Sign up the user (with email confirmation enabled)
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
