@@ -22,20 +22,6 @@
     }
   ],
   "categories": ["fitness", "health", "lifestyle", "sports"],
-  "screenshots": [
-    {
-      "src": "/screenshot-1.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "label": "Home screen showing available activities"
-    },
-    {
-      "src": "/screenshot-2.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "label": "Event booking interface"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Book Activity",

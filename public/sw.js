@@ -1,10 +1,18 @@
-const CACHE_NAME = 'nomas-v1';
+const CACHE_NAME = 'nomas-v2';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/offline.html'
+  '/offline.html',
+  '/apple-touch-icon.png',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png',
+  '/mask-icon.svg'
 ];
+
+// Runtime caching for API calls and images
+const RUNTIME_CACHE = 'nomas-runtime-v1';
+const API_CACHE = 'nomas-api-v1';
 
 // Install event - cache essential files
 self.addEventListener('install', event => {
@@ -20,11 +28,13 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME, RUNTIME_CACHE, API_CACHE];
+  
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
+          if (!cacheWhitelist.includes(cacheName)) {
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
@@ -43,42 +53,96 @@ self.addEventListener('fetch', event => {
   // Skip chrome-extension and other non-http(s) requests
   if (!event.request.url.startsWith('http')) return;
 
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
+  const { request } = event;
+  const url = new URL(request.url);
 
-        // Clone the request
-        const fetchRequest = event.request.clone();
+  // Handle different types of requests with appropriate strategies
 
-        return fetch(fetchRequest).then(response => {
-          // Check if valid response
-          if (!response || response.status !== 200 || response.type !== 'basic') {
+  // 1. Navigation requests - Cache First with Network Fallback
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      caches.match(request)
+        .then(response => {
+          if (response) {
             return response;
           }
-
-          // Clone the response
-          const responseToCache = response.clone();
-
-          // Cache the response for future use
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              // Only cache same-origin requests
-              if (event.request.url.startsWith(self.location.origin)) {
-                cache.put(event.request, responseToCache);
+          return fetch(request)
+            .then(response => {
+              // Cache successful responses
+              if (response && response.status === 200) {
+                const responseToCache = response.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(request, responseToCache);
+                });
               }
-            });
+              return response;
+            })
+            .catch(() => caches.match('/offline.html'));
+        })
+    );
+    return;
+  }
 
-          return response;
-        }).catch(() => {
-          // Return offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match('/offline.html');
+  // 2. API requests - Network First with Cache Fallback
+  if (url.hostname.includes('supabase.co')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(API_CACHE).then(cache => {
+              cache.put(request, responseToCache);
+            });
           }
-        });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+
+  // 3. Static assets (images, fonts, etc.) - Cache First
+  if (request.destination === 'image' || 
+      request.destination === 'font' || 
+      request.url.includes('/assets/')) {
+    event.respondWith(
+      caches.match(request)
+        .then(response => {
+          if (response) {
+            return response;
+          }
+          return fetch(request)
+            .then(response => {
+              if (response && response.status === 200) {
+                const responseToCache = response.clone();
+                caches.open(RUNTIME_CACHE).then(cache => {
+                  cache.put(request, responseToCache);
+                });
+              }
+              return response;
+            });
+        })
+    );
+    return;
+  }
+
+  // 4. Default strategy for other requests
+  event.respondWith(
+    caches.match(request)
+      .then(response => {
+        return response || fetch(request)
+          .then(response => {
+            if (response && response.status === 200 && 
+                request.url.startsWith(self.location.origin)) {
+              const responseToCache = response.clone();
+              caches.open(RUNTIME_CACHE).then(cache => {
+                cache.put(request, responseToCache);
+              });
+            }
+            return response;
+          });
       })
   );
 }); 

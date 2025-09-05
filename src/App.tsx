@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import InstallPrompt from '@/components/InstallPrompt';
 import ForgotPasswordPage from '@/pages/ForgotPasswordPage';
 import TermsPage from '@/pages/TermsPage';
 import PrivacyPage from '@/pages/PrivacyPage';
@@ -63,6 +64,7 @@ function App() {
         closeButton
       />
       <Analytics />
+      <InstallPrompt />
       <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
