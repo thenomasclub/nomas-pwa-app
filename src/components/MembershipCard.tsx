@@ -49,8 +49,6 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
   return (
     <Card className="w-full glass border-primary/20 shadow-xl animate-scale-in">
       <div className="relative overflow-hidden">
-        {/* Premium Status Indicator */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/60 to-primary"></div>
 
         <CardHeader className="text-center pb-6">
           <div className="space-y-3">

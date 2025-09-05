@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { useAuthStore } from '@/store/authStore';
 import { useMembership } from '@/hooks/useMembership';
 import { toast } from 'sonner';
@@ -73,6 +74,7 @@ const EventsPage = () => {
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [bookingLoading, setBookingLoading] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const realtimeChannelRef = useRef<RealtimeChannel | null>(null);
   const eventId = searchParams.get('id');
 
   const formatIDR = (val: number) => {
@@ -95,7 +97,27 @@ const EventsPage = () => {
 
   useEffect(() => {
     fetchEvents();
-  }, [typeFilter, dateFilter, pricingFilter, user, eventId]);
+  }, [typeFilter, dateFilter, pricingFilter, user]); // Removed eventId to prevent unnecessary refetches
+  
+  // Separate effect for eventId to avoid conflicts
+  useEffect(() => {
+    if (eventId) {
+      fetchEvents();
+    }
+  }, [eventId]);
+
+  // Set up real-time subscription when component mounts
+  useEffect(() => {
+    setupRealtimeSubscription();
+    
+    // Cleanup subscription on unmount
+    return () => {
+      if (realtimeChannelRef.current) {
+        realtimeChannelRef.current.unsubscribe();
+        realtimeChannelRef.current = null;
+      }
+    };
+  }, [user]); // Re-subscribe when user changes
 
   // Handle payment status from Stripe redirects
   useEffect(() => {
@@ -105,17 +127,19 @@ const EventsPage = () => {
     if (paymentStatus) {
       if (paymentStatus === 'success') {
         toast.success('Payment successful! Your event booking has been confirmed.');
+        // Refresh events data after successful payment to sync with database
+        setTimeout(() => fetchEvents(), 1000);
       } else if (paymentStatus === 'canceled') {
         toast.info('Payment was canceled. You can try again anytime.');
       }
       
-      // Clean up URL parameters
+      // Clean up URL parameters without triggering additional re-renders
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('payment');
       if (eventIdFromPayment) {
         newParams.delete('event_id');
       }
-      setSearchParams(newParams);
+      setSearchParams(newParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
@@ -252,6 +276,96 @@ const EventsPage = () => {
     }
   };
 
+  // Set up real-time subscription for bookings
+  const setupRealtimeSubscription = () => {
+    // Clean up existing subscription
+    if (realtimeChannelRef.current) {
+      realtimeChannelRef.current.unsubscribe();
+    }
+
+    // Create new real-time channel
+    const channel = supabase
+      .channel('bookings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bookings'
+        },
+        (payload) => {
+          handleRealtimeBookingChange(payload);
+        }
+      )
+      .subscribe();
+
+    realtimeChannelRef.current = channel;
+  };
+
+  // Handle real-time booking changes
+  const handleRealtimeBookingChange = (payload: any) => {
+    const { eventType, new: newRecord, old: oldRecord } = payload;
+    
+    setEvents(currentEvents => {
+      return currentEvents.map(event => {
+        const affectedEventId = newRecord?.event_id || oldRecord?.event_id;
+        
+        if (event.id === affectedEventId) {
+          let updatedEvent = { ...event };
+          
+          if (eventType === 'INSERT' && newRecord?.status === 'confirmed') {
+            // New confirmed booking
+            updatedEvent.bookings_count = (event.bookings_count || 0) + 1;
+            
+            // Check if current user made this booking
+            if (newRecord.user_id === user?.id) {
+              updatedEvent.is_booked = true;
+              updatedEvent.booking_status = 'confirmed';
+            }
+          } else if (eventType === 'DELETE' && oldRecord?.status === 'confirmed') {
+            // Booking cancelled
+            updatedEvent.bookings_count = Math.max(0, (event.bookings_count || 0) - 1);
+            
+            // Check if current user cancelled this booking
+            if (oldRecord.user_id === user?.id) {
+              updatedEvent.is_booked = false;
+              updatedEvent.booking_status = null;
+            }
+          } else if (eventType === 'UPDATE') {
+            // Booking status changed
+            const wasConfirmed = oldRecord?.status === 'confirmed';
+            const isNowConfirmed = newRecord?.status === 'confirmed';
+            
+            if (!wasConfirmed && isNowConfirmed) {
+              updatedEvent.bookings_count = (event.bookings_count || 0) + 1;
+            } else if (wasConfirmed && !isNowConfirmed) {
+              updatedEvent.bookings_count = Math.max(0, (event.bookings_count || 0) - 1);
+            }
+            
+            // Update current user's booking status
+            if (newRecord.user_id === user?.id) {
+              updatedEvent.is_booked = isNowConfirmed;
+              updatedEvent.booking_status = newRecord.status;
+            }
+          }
+          
+          return updatedEvent;
+        }
+        
+        return event;
+      });
+    });
+
+    // Update selected event if it's affected
+    setSelectedEvent(currentSelected => {
+      if (currentSelected && currentSelected.id === (newRecord?.event_id || oldRecord?.event_id)) {
+        const updatedEvent = events.find(e => e.id === currentSelected.id);
+        return updatedEvent || currentSelected;
+      }
+      return currentSelected;
+    });
+  };
+
   const handleBooking = async (eventId: string, isBooked: boolean) => {
     if (!user) {
       navigate('/login');
@@ -300,7 +414,8 @@ const EventsPage = () => {
 
             const { url } = response.data;
             if (url) {
-              window.location.href = url;
+              // Smooth navigation to Stripe instead of harsh redirect
+              window.open(url, '_self');
             } else {
               throw new Error('No checkout URL received');
             }
@@ -345,8 +460,41 @@ const EventsPage = () => {
         }
       }
 
-      // Refresh events
-      await fetchEvents();
+      // Optimistic update instead of full refetch for better UX
+      const updatedEvents = events.map(event => {
+        if (event.id === eventId) {
+          if (isBooked) {
+            // Cancelling booking
+            return {
+              ...event,
+              is_booked: false,
+              booking_status: null,
+              bookings_count: Math.max(0, (event.bookings_count || 0) - 1)
+            };
+          } else {
+            // Creating booking
+            const newCount = (event.bookings_count || 0) + 1;
+            const isNowFull = newCount >= event.max_slots;
+            return {
+              ...event,
+              is_booked: true,
+              booking_status: isNowFull ? 'waitlisted' : 'confirmed',
+              bookings_count: newCount
+            };
+          }
+        }
+        return event;
+      });
+      
+      setEvents(updatedEvents);
+      
+      // Update selected event if it exists
+      if (selectedEvent && selectedEvent.id === eventId) {
+        const updatedSelectedEvent = updatedEvents.find(e => e.id === eventId);
+        if (updatedSelectedEvent) {
+          setSelectedEvent(updatedSelectedEvent);
+        }
+      }
     } catch (err: any) {
       toast.error(err.message || 'Something went wrong');
       setError(err.message);
