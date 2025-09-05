@@ -1,15 +1,26 @@
-import { useLocation, Link, useSearchParams } from 'react-router-dom';
+import { useLocation, Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Mail, CreditCard } from 'lucide-react';
+import { CheckCircle, Mail, CreditCard, Crown } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 const SignupSuccessPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const state = location.state as { email?: string } | null;
+  const state = location.state as { email?: string; firstName?: string; userId?: string } | null;
   const email = state?.email ?? 'your email';
+  const firstName = state?.firstName ?? '';
+  const userId = state?.userId;
   const paymentStatus = searchParams.get('payment');
+
+  const handleUpgradeNow = () => {
+    if (userId) {
+      navigate('/membership-selection', { 
+        state: { email, firstName, userId } 
+      });
+    }
+  };
 
   // Handle payment success from Stripe
   useEffect(() => {
@@ -45,11 +56,25 @@ const SignupSuccessPage = () => {
             </p>
           </>
         )}
-        <Button asChild size="lg" className="w-full h-[40px]">
-          <Link to="/login">
-            <Mail className="h-4 w-4 mr-2" /> Sign In
-          </Link>
-        </Button>
+        
+        {/* Action buttons */}
+        <div className="space-y-3">
+          {userId && !paymentStatus && (
+            <Button 
+              onClick={handleUpgradeNow}
+              size="lg" 
+              className="w-full h-[40px] bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+            >
+              <Crown className="h-4 w-4 mr-2" /> Upgrade to Premium
+            </Button>
+          )}
+          
+          <Button asChild size="lg" variant="outline" className="w-full h-[40px]">
+            <Link to="/login">
+              <Mail className="h-4 w-4 mr-2" /> Sign In
+            </Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

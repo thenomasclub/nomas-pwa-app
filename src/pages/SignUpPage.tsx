@@ -74,7 +74,7 @@ const SignUpPage = () => {
       }
 
       // Sign up the user (with email confirmation enabled)
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -94,7 +94,8 @@ const SignUpPage = () => {
 
       // Redirect to email confirmation page
       // Users need to confirm their email before they can continue
-      navigate('/signup-success', { state: { email, firstName } });
+      const userId = authData?.user?.id;
+      navigate('/signup-success', { state: { email, firstName, userId } });
     } catch (error: any) {
       console.error('Full signup error:', error);
       
