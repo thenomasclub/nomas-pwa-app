@@ -270,6 +270,62 @@ serve(async (req) => {
         break;
       }
 
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const customerId = session.customer as string;
+        const eventId = session.metadata?.event_id;
+        const userId = session.metadata?.supabase_user_id;
+
+        console.log(`✅ Checkout session completed for event ${eventId}, user ${userId}`);
+        
+        // Only create booking for event payments (not subscriptions)
+        if (eventId && userId) {
+          // Get event details to check if fully booked
+          const { data: event, error: eventError } = await supabase
+            .from('events')
+            .select('max_slots')
+            .eq('id', eventId)
+            .single();
+
+          if (eventError) {
+            console.error('Error fetching event:', eventError);
+            await logWebhookEvent("checkout.session.completed", customerId, "error", `Failed to fetch event: ${eventId}`);
+            break;
+          }
+
+          // Count current confirmed bookings
+          const { data: confirmedBookings } = await supabase
+            .from('bookings')
+            .select('id')
+            .eq('event_id', eventId)
+            .eq('status', 'confirmed');
+
+          const bookingsCount = confirmedBookings?.length || 0;
+          const isFullyBooked = bookingsCount >= event.max_slots;
+
+          // Create booking with confirmed status
+          const { error: bookingError } = await supabase
+            .from('bookings')
+            .insert({
+              user_id: userId,
+              event_id: eventId,
+              status: isFullyBooked ? 'waitlisted' : 'confirmed',
+              payment_status: 'paid',
+              stripe_checkout_session_id: session.id,
+              amount_paid_cents: session.amount_total || 0,
+            });
+
+          if (bookingError) {
+            console.error('Error creating booking:', bookingError);
+            await logWebhookEvent("checkout.session.completed", customerId, "error", `Failed to create booking: ${eventId}`);
+          } else {
+            console.log(`✅ Booking created for event ${eventId}, user ${userId}, status: ${isFullyBooked ? 'waitlisted' : 'confirmed'}`);
+            await logWebhookEvent("checkout.session.completed", customerId, "success", `Event booking created: ${eventId}`);
+          }
+        }
+        break;
+      }
+
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         const customerId = paymentIntent.customer as string;
@@ -278,20 +334,6 @@ serve(async (req) => {
 
         console.log(`❌ Payment failed for event ${eventId}, user ${userId}`);
         
-        if (eventId && userId) {
-          // Update booking payment status and remove booking
-          const { error } = await supabase
-            .from('bookings')
-            .update({ payment_status: 'failed' })
-            .eq('event_id', eventId)
-            .eq('user_id', userId)
-            .eq('stripe_payment_intent_id', paymentIntent.id);
-
-          if (error) {
-            console.error('Error updating booking payment status:', error);
-          }
-        }
-
         await logWebhookEvent("payment_intent.payment_failed", customerId, "success", `Event: ${eventId}, Amount: ${paymentIntent.amount}`);
         break;
       }

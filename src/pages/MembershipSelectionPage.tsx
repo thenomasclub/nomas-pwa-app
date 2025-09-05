@@ -66,6 +66,10 @@ const MembershipSelectionPage = () => {
     setLoading(true);
     
     try {
+      // Mark onboarding as completed
+      const onboardingKey = `onboarding_completed_${userId}`;
+      localStorage.setItem(onboardingKey, 'true');
+
       // Only monthly plan is available now
       const stripePlan = 'monthly';
 
@@ -96,15 +100,14 @@ const MembershipSelectionPage = () => {
   };
 
   const handleSkip = () => {
+    // Mark onboarding as completed
+    const onboardingKey = `onboarding_completed_${userId}`;
+    localStorage.setItem(onboardingKey, 'true');
+    
     // User chose free membership, redirect to email confirmation
     navigate('/signup-success', { state: { email } });
   };
 
-  const handleSkipForNow = () => {
-    // For first-time users, redirect them to the main app
-    toast.success('Welcome! You can upgrade to premium anytime from your profile.');
-    navigate('/home');
-  };
 
   return (
     <div className="min-h-screen overflow-y-auto flex flex-col items-center justify-center px-4 py-8" style={{ backgroundColor: '#0F1D0E' }}>
@@ -223,17 +226,6 @@ const MembershipSelectionPage = () => {
               </>
             )}
           </Button>
-          
-          {isFirstTime && (
-            <Button
-              onClick={handleSkipForNow}
-              variant="outline"
-              className="w-full h-12 border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-white"
-              size="lg"
-            >
-              Skip for now, continue with free access
-            </Button>
-          )}
 
           <Button
             variant="ghost"

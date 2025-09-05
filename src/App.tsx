@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { useEffect, lazy, Suspense, useRef } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useMembership } from '@/hooks/useMembership';
@@ -41,25 +41,30 @@ const AuthHandler = () => {
   const { membershipTier, loading: membershipLoading } = useMembership();
   const navigate = useNavigate();
   const location = useLocation();
-  const hasRedirected = useRef(false);
 
   useEffect(() => {
+    if (!user || membershipLoading) return;
+
+    // Check if user has completed onboarding before
+    const onboardingKey = `onboarding_completed_${user.id}`;
+    const hasCompletedOnboarding = localStorage.getItem(onboardingKey) === 'true';
+
     // Only redirect if:
     // 1. User is logged in
-    // 2. User has free tier (new user)
-    // 3. Not already on membership pages
-    // 4. Haven't redirected before in this session
+    // 2. User has free tier 
+    // 3. User has NOT completed onboarding before (first time)
+    // 4. Not already on membership, signup, or home pages
     if (
       user && 
       !membershipLoading && 
       membershipTier === 'free' && 
-      !hasRedirected.current &&
+      !hasCompletedOnboarding &&
       !location.pathname.includes('/membership') &&
       !location.pathname.includes('/signup') &&
-      location.pathname !== '/' // Don't redirect from homepage
+      location.pathname !== '/' && // Don't redirect from homepage
+      location.pathname !== '/home' // Don't redirect from events page
     ) {
       console.log('Redirecting first-time user to membership selection');
-      hasRedirected.current = true;
       navigate('/membership-selection', { 
         state: { 
           email: user.email, 

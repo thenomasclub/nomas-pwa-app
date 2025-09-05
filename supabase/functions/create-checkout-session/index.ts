@@ -47,7 +47,7 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
   try {
-    const { plan, userId, redirectTo } = await req.json();
+    const { plan, userId, redirectTo, eventId } = await req.json();
     
     if (!plan || !userId) {
       return new Response("Missing plan or userId", { 
@@ -58,8 +58,9 @@ serve(async (req) => {
       });
     }
 
-    // Get Stripe price for the specific membership product
-    let priceId: string;
+    // Handle different payment types
+    let priceId: string | null = null;
+    let eventData: any = null;
     
     if (plan === 'monthly') {
       // Get active prices for the membership product
@@ -79,6 +80,43 @@ serve(async (req) => {
       }
 
       priceId = prices.data[0].id;
+    } else if (plan === 'event') {
+      // Handle event payment
+      if (!eventId) {
+        return new Response("Missing eventId for event payment", { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      }
+
+      // Get event details
+      const { data: event, error: eventError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('id', eventId)
+        .single();
+
+      if (eventError || !event) {
+        return new Response("Event not found", { 
+          status: 404,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      }
+
+      if (event.is_free || event.price_cents === 0) {
+        return new Response("Event is free - no payment required", { 
+          status: 400,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      }
+
+      eventData = event;
     } else {
       return new Response("Invalid plan", { 
         status: 400,
@@ -123,38 +161,71 @@ serve(async (req) => {
         .eq('id', userId);
     }
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: redirectTo === 'profile' 
-        ? `${req.headers.get('origin')}/profile?payment=success`
-        : `${req.headers.get('origin')}/signup-success?payment=success`,
-      cancel_url: redirectTo === 'profile' 
-        ? `${req.headers.get('origin')}/profile?payment=canceled`
-        : `${req.headers.get('origin')}/membership-selection?payment=canceled`,
-      metadata: {
-        supabase_user_id: userId,
-        plan: plan,
-        price_id: priceId,
-      },
-      // Allow promotion codes
-      allow_promotion_codes: true,
-      // Set up subscription data
-      subscription_data: {
+    // Create checkout session based on payment type
+    let session;
+    
+    if (plan === 'monthly') {
+      // Subscription checkout for membership
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price: priceId!,
+            quantity: 1,
+          },
+        ],
+        mode: 'subscription',
+        success_url: redirectTo === 'profile' 
+          ? `${req.headers.get('origin')}/profile?payment=success`
+          : `${req.headers.get('origin')}/signup-success?payment=success`,
+        cancel_url: redirectTo === 'profile' 
+          ? `${req.headers.get('origin')}/profile?payment=canceled`
+          : `${req.headers.get('origin')}/membership-selection?payment=canceled`,
         metadata: {
           supabase_user_id: userId,
           plan: plan,
+          price_id: priceId!,
         },
-      },
-    });
+        allow_promotion_codes: true,
+        subscription_data: {
+          metadata: {
+            supabase_user_id: userId,
+            plan: plan,
+          },
+        },
+      });
+    } else if (plan === 'event') {
+      // One-time payment for event
+      session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'idr',
+              product_data: {
+                name: `Event: ${eventData.title}`,
+                description: eventData.description,
+              },
+              unit_amount: eventData.price_cents,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.headers.get('origin')}/events?payment=success&event_id=${eventId}`,
+        cancel_url: `${req.headers.get('origin')}/events?payment=canceled&event_id=${eventId}`,
+        metadata: {
+          supabase_user_id: userId,
+          event_id: eventId,
+          event_title: eventData.title,
+          event_price_cents: eventData.price_cents.toString(),
+        },
+      });
+
+      // Don't create booking yet - will be created by webhook after successful payment
+    }
 
     return new Response(
       JSON.stringify({ url: session.url }),

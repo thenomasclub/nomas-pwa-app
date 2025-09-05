@@ -39,11 +39,11 @@ const HomePage: React.FC = () => {
           </p>
           
           {/* CTA Buttons - Responsive width */}
-          <div className="flex flex-col gap-3 sm:gap-4 items-center mb-12">
+          <div className="flex flex-col gap-4 sm:gap-6 items-center mb-12">
             <Button 
               asChild 
               size="lg" 
-              className="group w-full max-w-sm h-12 sm:h-14 text-base sm:text-lg"
+              className="group w-full max-w-sm h-12 sm:h-14 text-base sm:text-lg shadow-xl animate-fade-in bg-primary hover:bg-primary/90 border-primary/20"
             >
               <Link to="/login">
                 Sign in
@@ -54,7 +54,8 @@ const HomePage: React.FC = () => {
               asChild 
               size="lg" 
               variant="outline" 
-              className="group w-full max-w-sm h-12 sm:h-14 text-base sm:text-lg"
+              className="group w-full max-w-sm h-12 sm:h-14 text-base sm:text-lg shadow-lg animate-fade-in glass border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+              style={{ animationDelay: '150ms' }}
             >
               <Link to="/signup">
                 Sign up

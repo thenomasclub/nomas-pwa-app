@@ -85,7 +85,7 @@ const InstallPrompt = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:max-w-sm">
+    <div className="fixed bottom-20 left-4 right-4 z-[60] md:bottom-4 md:left-auto md:right-4 md:max-w-sm">
       <Card className="border-primary shadow-lg">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
@@ -94,7 +94,7 @@ const InstallPrompt = () => {
                 <Download className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm">Install Nomas</h3>
+                <h3 className="font-semibold text-sm">Install The Nomas Club App</h3>
                 <p className="text-xs text-muted-foreground">
                   Get quick access to your activities
                 </p>

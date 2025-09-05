@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Crown, CreditCard, Check, Star, Zap, Calendar, Users, Shield, Coffee } from 'lucide-react';
 
 interface MembershipCardProps {
   isPremiumMember: boolean;
@@ -14,10 +13,30 @@ interface MembershipCardProps {
 }
 
 const PREMIUM_FEATURES = [
-  { icon: Users, text: 'A private community of experts in business, trading, fitness, travel & content creation' },
-  { icon: Calendar, text: 'Exclusive monthly events hosted by The Nomas Club' },
-  { icon: Coffee, text: 'Special perks & discounts across Bali: coffee shops, gyms, restaurants, nightlife & more' },
-  { icon: Shield, text: 'Business events that connect you to the right people' },
+  {
+    title: 'Private Expert Community',
+    description: 'A private community of experts in business, trading, fitness, travel & content creation'
+  },
+  {
+    title: 'Exclusive Monthly Events',
+    description: 'Exclusive monthly events hosted by The Nomas Club'
+  },
+  {
+    title: 'Special Perks & Discounts',
+    description: 'Special perks & discounts across Bali: coffee shops, gyms, restaurants, nightlife & more'
+  },
+  {
+    title: 'Business Networking',
+    description: 'Business events that connect you to the right people'
+  },
+  {
+    title: 'Priority Access',
+    description: 'Get priority booking for all events and activities'
+  },
+  {
+    title: 'Premium Support',
+    description: 'Direct access to our concierge service for personalized assistance'
+  }
 ];
 
 export const MembershipCard: React.FC<MembershipCardProps> = ({
@@ -28,124 +47,112 @@ export const MembershipCard: React.FC<MembershipCardProps> = ({
   loading = false
 }) => {
   return (
-    <Card className="w-full max-w-md mx-auto bg-[#152B14] border-[#152B14]">
-      <div className="relative">
-        {/* Premium Badge */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <Badge className="bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg">
-            <Crown className="h-3 w-3 mr-1" />
-            Premium Membership
-          </Badge>
-        </div>
+    <Card className="w-full glass border-primary/20 shadow-xl animate-scale-in">
+      <div className="relative overflow-hidden">
+        {/* Premium Status Indicator */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/60 to-primary"></div>
 
-        <CardHeader className="text-center pt-8 pb-4">
-          <CardTitle className="text-xl font-bold text-white">
-            {isPremiumMember ? (
-              <>
-                <Crown className="h-5 w-5 inline mr-2 text-yellow-400" />
-                {membershipDisplayName}
-              </>
-            ) : (
-              'Upgrade to Premium'
+        <CardHeader className="text-center pb-6">
+          <div className="space-y-3">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              {isPremiumMember ? membershipDisplayName : 'Premium Membership'}
+            </CardTitle>
+            <CardDescription className="text-lg text-foreground/70">
+              {isPremiumMember 
+                ? 'Enjoy unlimited access to all premium features and exclusive benefits'
+                : 'Unlock an elevated experience with comprehensive access to our community and exclusive perks'
+              }
+            </CardDescription>
+            {isPremiumMember && (
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 font-medium">
+                Active Premium Member
+              </Badge>
             )}
-          </CardTitle>
-          <CardDescription className="text-green-100">
-            {isPremiumMember 
-              ? 'You have access to all premium features'
-              : 'Unlock exclusive features and priority access'
-            }
-          </CardDescription>
+          </div>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-8">
+          {/* Premium Features Section */}
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                {isPremiumMember ? 'Your Premium Benefits' : 'What You Get'}
+              </h3>
+              <p className="text-sm text-foreground/70">
+                Comprehensive access to everything we offer
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {PREMIUM_FEATURES.map((feature, index) => (
+                <div 
+                  key={index} 
+                  className="p-4 rounded-xl bg-muted/30 border border-primary/10 hover:border-primary/20 transition-all duration-200"
+                >
+                  <h4 className="font-semibold text-foreground mb-2 text-sm">
+                    {feature.title}
+                  </h4>
+                  <p className="text-xs text-foreground/80 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator className="bg-primary/20" />
+
           {isPremiumMember ? (
-            /* Premium Member Section */
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-green-200">
-                <Check className="h-4 w-4" />
-                Premium Active
-              </div>
-              
-              <div className="grid grid-cols-1 gap-3">
-                {PREMIUM_FEATURES.map((feature, index) => (
-                  <div key={index} className="flex items-start gap-2 text-sm">
-                    <feature.icon className="h-4 w-4 text-green-300 mt-0.5 flex-shrink-0" />
-                    <span className="text-green-100">{feature.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Separator />
-
-              <div className="flex justify-center">
+            /* Premium Member Management Section */
+            <div className="space-y-6 text-center">
+              <div className="p-6 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+                <h4 className="text-lg font-semibold text-foreground mb-2">
+                  Membership Management
+                </h4>
+                <p className="text-sm text-foreground/70 mb-4">
+                  Manage your subscription, update payment methods, and view billing history
+                </p>
                 <Button 
                   variant="outline"
                   onClick={onManageSubscription}
                   disabled={loading}
-                  className="w-full sm:w-auto"
+                  className="border-primary/30 hover:bg-primary/10 hover:border-primary/50"
+                  size="lg"
                 >
-                  <CreditCard className="h-4 w-4" />
-                  Manage Subscription
+                  {loading ? 'Loading...' : 'Manage Subscription'}
                 </Button>
               </div>
             </div>
           ) : (
-            /* Free Member Upgrade Section */
+            /* Upgrade Section */
             <div className="space-y-6">
-              {/* Features Preview */}
-              <div className="space-y-3">
-                <h4 className="font-medium text-sm uppercase tracking-wide text-green-200">
-                  Premium Benefits
+              {/* Pricing Display */}
+              <div className="text-center space-y-4">
+                <h4 className="text-xl font-semibold text-foreground">
+                  Start Your Premium Journey
                 </h4>
-                <div className="grid grid-cols-1 gap-2">
-                  {PREMIUM_FEATURES.map((feature, index) => (
-                    <div key={index} className="flex items-start gap-2 text-sm">
-                      <feature.icon className="h-4 w-4 text-green-300 mt-0.5 flex-shrink-0" />
-                      <span className="text-green-100">{feature.text}</span>
+                <div className="inline-block p-6 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/15 border-2 border-primary/20">
+                  <div className="space-y-3">
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl font-bold text-primary">£50</span>
+                      <span className="text-lg text-muted-foreground">per month</span>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
 
-              <Separator />
-
-              {/* Monthly Plan Display */}
-              <div className="space-y-4">
-                <h4 className="font-medium text-sm uppercase tracking-wide text-green-200">
-                  Monthly Premium Plan
-                </h4>
-                <div className="bg-white dark:bg-gray-800 rounded-lg border-2 border-[#152B14] p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-lg">Monthly</div>
-                      <div className="text-sm text-muted-foreground">Flexible month-to-month</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-[#152B14]">£50</div>
-                      <div className="text-xs text-muted-foreground">per month</div>
-                    </div>
-                  </div>
-                  <div className="mt-2">
-                    <Badge className="bg-gradient-to-r from-green-600 to-green-700 text-white text-xs">
-                      <Star className="h-3 w-3 mr-1" />
-                      Most Popular
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Upgrade Button */}
+              {/* CTA Section */}
+              <div className="text-center space-y-4">
                 <Button 
                   onClick={() => onSubscribe('monthly')}
                   disabled={loading}
-                  className="w-full bg-[#142B13] hover:bg-[#0f1c0e] text-white shadow-lg"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
                   size="lg"
                 >
-                  <Zap className="h-4 w-4" />
                   {loading ? 'Processing...' : 'Upgrade to Premium'}
                 </Button>
-
-                <p className="text-xs text-center text-green-200">
-                  Cancel anytime. No commitment required.
+                <p className="text-xs text-foreground/70">
+                  Start your premium experience today with full access to all features
                 </p>
               </div>
             </div>

@@ -101,13 +101,16 @@ const DashboardPage = () => {
         
         <div className="container mx-auto px-4 py-8 relative">
           {/* Dashboard Header */}
-          <div className="mb-8 animate-fade-in">
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+          <div className="mb-8 animate-fade-in text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <h1 className="text-3xl font-bold">Dashboard</h1>
+            </div>
+            <p className="text-muted-foreground">Your activity overview and next events</p>
           </div>
 
           {/* Next Event Card */}
           {!loading && nextEvent && (
-            <Card className="mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 animate-slide-up relative overflow-hidden">
+            <Card className="mb-8 glass border-primary/20 shadow-xl animate-slide-up relative overflow-hidden">
               {/* Background image for next event */}
               <div className="absolute inset-0">
                 <img
@@ -121,13 +124,13 @@ const DashboardPage = () => {
               <div className="relative z-10">
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-full bg-primary/10">
-                        <Calendar className="h-5 w-5 text-primary" />
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-full bg-primary/10">
+                        <Calendar className="h-6 w-6 text-primary" />
                       </div>
-                      <CardTitle>Your Next Activity</CardTitle>
+                      <CardTitle className="text-2xl font-semibold">Your Next Activity</CardTitle>
                     </div>
-                    <Badge variant="outline" className="bg-background">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                       Upcoming
                     </Badge>
                   </div>
@@ -171,7 +174,7 @@ const DashboardPage = () => {
                 return (
                   <Card 
                     key={stat.title} 
-                    className="relative overflow-hidden animate-slide-up group hover:shadow-lg transition-shadow"
+                    className="relative overflow-hidden animate-slide-up group hover:shadow-xl transition-all duration-300 border-primary/10"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     {/* Background image */}
@@ -216,7 +219,7 @@ const DashboardPage = () => {
           </div>
 
           {/* Motivational Quote */}
-          <Card className="mt-8 bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20 relative overflow-hidden">
+          <Card className="mt-8 glass border-primary/20 shadow-xl relative overflow-hidden animate-fade-in">
             {/* Background image for motivational quote */}
             <div className="absolute inset-0">
               <img

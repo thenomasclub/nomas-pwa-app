@@ -267,14 +267,16 @@ const ProfilePage = () => {
 
           <div className="grid gap-6">
             {/* Profile Information */}
-            <Card className="animate-scale-in glass shadow-lg">
+            <Card className="animate-scale-in glass shadow-xl border-primary/20">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
+                <CardTitle className="text-2xl font-semibold text-foreground flex items-center gap-3">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
                   Profile Information
                 </CardTitle>
-                <CardDescription>
-                  Update your personal details
+                <CardDescription className="text-muted-foreground mt-2">
+                  Update your personal details and account settings
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -346,31 +348,40 @@ const ProfilePage = () => {
 
             {/* Subscription Status Alert */}
             {statusMessage && (
-              <Card className={`animate-scale-in mb-6 border-2 ${
-                statusMessage.type === 'error' ? 'border-red-200 bg-red-50' :
-                statusMessage.type === 'warning' ? 'border-yellow-200 bg-yellow-50' :
-                'border-blue-200 bg-blue-50'
+              <Card className={`animate-scale-in mb-6 glass shadow-lg border-2 ${
+                statusMessage.type === 'error' ? 'border-red-200/60 bg-red-50/80' :
+                statusMessage.type === 'warning' ? 'border-yellow-200/60 bg-yellow-50/80' :
+                'border-blue-200/60 bg-blue-50/80'
               }`}>
                 <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${
-                      statusMessage.type === 'error' ? 'bg-red-500' :
-                      statusMessage.type === 'warning' ? 'bg-yellow-500' :
-                      'bg-blue-500'
-                    }`} />
-                    <p className={`font-medium ${
-                      statusMessage.type === 'error' ? 'text-red-900' :
-                      statusMessage.type === 'warning' ? 'text-yellow-900' :
-                      'text-blue-900'
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-full ${
+                      statusMessage.type === 'error' ? 'bg-red-100' :
+                      statusMessage.type === 'warning' ? 'bg-yellow-100' :
+                      'bg-blue-100'
                     }`}>
-                      {statusMessage.message}
-                    </p>
+                      <div className={`w-3 h-3 rounded-full ${
+                        statusMessage.type === 'error' ? 'bg-red-500' :
+                        statusMessage.type === 'warning' ? 'bg-yellow-500' :
+                        'bg-blue-500'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className={`font-semibold ${
+                        statusMessage.type === 'error' ? 'text-red-900' :
+                        statusMessage.type === 'warning' ? 'text-yellow-900' :
+                        'text-blue-900'
+                      }`}>
+                        {statusMessage.message}
+                      </p>
+                    </div>
                   </div>
                   {needsPaymentAttention && (
                     <Button
                       onClick={handleManageSubscription}
-                      className="mt-4 w-full"
+                      className="mt-6 w-full"
                       variant={statusMessage.type === 'error' ? 'destructive' : 'default'}
+                      size="lg"
                     >
                       Update Payment Method
                     </Button>
@@ -394,15 +405,18 @@ const ProfilePage = () => {
             {/* Achievements */}
 
             {/* Sign Out Button */}
-            <Button
-              variant="destructive"
-              className="w-full max-w-sm mx-auto flex items-center gap-2 shadow-lg"
-              onClick={handleSignOut}
-              style={{ animationDelay: '250ms' }}
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
+            <div className="mt-8">
+              <Button
+                variant="destructive"
+                className="w-full flex items-center gap-3 shadow-lg animate-fade-in"
+                onClick={handleSignOut}
+                size="lg"
+                style={{ animationDelay: '250ms' }}
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </div>

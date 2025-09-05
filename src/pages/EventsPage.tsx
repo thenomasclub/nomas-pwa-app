@@ -17,7 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import EventParticipants from '@/components/EventParticipants';
-import PaymentModal from '@/components/PaymentModal';
 
 interface Event {
   id: string;
@@ -74,8 +73,6 @@ const EventsPage = () => {
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [bookingLoading, setBookingLoading] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentData, setPaymentData] = useState<any>(null);
   const eventId = searchParams.get('id');
 
   const formatIDR = (val: number) => {
@@ -100,6 +97,28 @@ const EventsPage = () => {
     fetchEvents();
   }, [typeFilter, dateFilter, pricingFilter, user, eventId]);
 
+  // Handle payment status from Stripe redirects
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    const eventIdFromPayment = searchParams.get('event_id');
+    
+    if (paymentStatus) {
+      if (paymentStatus === 'success') {
+        toast.success('Payment successful! Your event booking has been confirmed.');
+      } else if (paymentStatus === 'canceled') {
+        toast.info('Payment was canceled. You can try again anytime.');
+      }
+      
+      // Clean up URL parameters
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('payment');
+      if (eventIdFromPayment) {
+        newParams.delete('event_id');
+      }
+      setSearchParams(newParams);
+    }
+  }, [searchParams, setSearchParams]);
+
 
 
   const fetchEvents = async () => {
@@ -120,14 +139,8 @@ const EventsPage = () => {
         if (error) throw error;
         
         if (data) {
-          // Get confirmed bookings count
-          const { data: confirmedCounts } = await supabase
-            .from('bookings')
-            .select('event_id')
-            .eq('status', 'confirmed')
-            .eq('event_id', data.id);
-          
-          const bookingCount = confirmedCounts?.length || 0;
+          // Get booking count from the events table (now includes bookings_count column)
+          const bookingCount = data.bookings_count || 0;
           
           // Check if user has booked this event
           let userBooking = null;
@@ -199,18 +212,8 @@ const EventsPage = () => {
       if (data) {
         const eventIds = data.map(event => event.id);
         
-        // Get confirmed bookings count
-        const { data: confirmedCounts } = await supabase
-          .from('bookings')
-          .select('event_id')
-          .eq('status', 'confirmed')
-          .eq('event_id', eventIds);
-
-        // Count bookings per event
-        const bookingCounts = confirmedCounts?.reduce((acc, booking) => {
-          acc[booking.event_id] = (acc[booking.event_id] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>) || {};
+        // Booking counts are now included in the events table via bookings_count column
+        // No need for separate counting queries - the database handles this automatically
 
         // Check if user has booked each event
         let userBookings: any[] = [];
@@ -231,7 +234,7 @@ const EventsPage = () => {
 
         const eventsWithBookingStatus = data.map(event => ({
           ...event,
-          bookings_count: bookingCounts[event.id] || 0,
+          // bookings_count is now included directly from the database
           is_booked: !!userBookingMap[event.id],
           booking_status: userBookingMap[event.id] || null
         }));
@@ -280,26 +283,27 @@ const EventsPage = () => {
         const requiresPayment = !event.is_free && !hasActivePremium;
 
         if (requiresPayment) {
-          // Create payment intent
+          // Create Stripe checkout session for event payment
           try {
-            const response = await supabase.functions.invoke('create-event-payment', {
-              body: { eventId, userId: user.id }
+            const response = await supabase.functions.invoke('create-checkout-session', {
+              body: { 
+                plan: 'event',
+                userId: user.id,
+                eventId: eventId,
+                redirectTo: 'events'
+              }
             });
 
             if (response.error) {
               throw new Error(response.error.message);
             }
 
-            const { client_secret, amount, event_title, currency } = response.data;
-            
-            // Open payment modal
-            setPaymentData({
-              clientSecret: client_secret,
-              amount,
-              eventTitle: event_title,
-              currency: currency || 'idr'
-            });
-            setShowPaymentModal(true);
+            const { url } = response.data;
+            if (url) {
+              window.location.href = url;
+            } else {
+              throw new Error('No checkout URL received');
+            }
             
           } catch (paymentError: any) {
             if (paymentError.message.includes('Premium members get free access')) {
@@ -351,15 +355,6 @@ const EventsPage = () => {
     }
   };
 
-  const handlePaymentSuccess = async () => {
-    toast.success('Payment successful! Your booking has been confirmed.', {
-      action: {
-        label: 'View Bookings',
-        onClick: () => navigate('/bookings')
-      }
-    });
-    await fetchEvents();
-  };
 
   // Icons and gradients by type removed; styling handled via image/background only.
 
@@ -838,17 +833,11 @@ const EventsPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredEvents.map((event, index) => {
                     const actualBookings = event.bookings_count || 0;
-                    // If no bookings yet, generate a deterministic pseudo-random number for UI testing
-                    const seed = parseInt(event.id.replace(/-/g, '').substring(0, 8), 16) || index;
-                    const simulatedBookings = (actualBookings === 0)
-                      ? (seed % event.max_slots) + 1 // at least 1 booking
-                      : actualBookings;
-
-                    const displayBookings = simulatedBookings;
+                    const displayBookings = actualBookings;
                     const isFullyBooked = displayBookings >= event.max_slots;
                     const spotsLeft = event.max_slots - displayBookings;
                     const isPast = new Date(event.date) < new Date();
-                    const spotPercentage = (displayBookings / event.max_slots) * 100;
+                    const spotPercentage = displayBookings > 0 ? (displayBookings / event.max_slots) * 100 : 0;
 
                     // Background images are currently disabled for a cleaner look
                     const bgUrl: string | undefined = event.image_url || undefined;
@@ -910,9 +899,9 @@ const EventsPage = () => {
                           {/* Booking status & CTA */}
                           <div className="space-y-3">
                             {/* Booking count */}
-                            {displayBookings > 0 && (
-                              <p className="text-xs font-medium">{displayBookings} participant(s)</p>
-                            )}
+                            <p className="text-xs font-medium">
+                              {displayBookings} participant{displayBookings !== 1 ? 's' : ''}
+                            </p>
                             {/* Capacity bar */}
                             <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/30">
                               <div
@@ -924,7 +913,9 @@ const EventsPage = () => {
                             {/* Spots left */}
                             <div className="text-xs font-medium">
                               {isFullyBooked ? (
-                                <span className="text-red-200">Full</span>
+                                <span className="text-red-200">Event Full</span>
+                              ) : spotsLeft === event.max_slots ? (
+                                <span className="text-[#142B13]">{event.max_slots} spots available</span>
                               ) : (
                                 <span className="text-[#142B13]">{spotsLeft} spots left</span>
                               )}
@@ -1045,21 +1036,6 @@ const EventsPage = () => {
         </div>
       </div>
 
-      {/* Payment Modal */}
-      {paymentData && (
-        <PaymentModal
-          isOpen={showPaymentModal}
-          onClose={() => {
-            setShowPaymentModal(false);
-            setPaymentData(null);
-          }}
-          eventTitle={paymentData.eventTitle}
-          amount={paymentData.amount}
-          currency={paymentData.currency}
-          clientSecret={paymentData.clientSecret}
-          onSuccess={handlePaymentSuccess}
-        />
-      )}
     </Layout>
   );
 };

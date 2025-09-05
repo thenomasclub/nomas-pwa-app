@@ -17,7 +17,7 @@ const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t md:relative md:border-t-0 md:border-b z-50 glass">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-primary/20 md:relative md:border-t-0 md:border-b z-50 glass shadow-lg">
       <div className="container mx-auto px-4">
         <div className="flex justify-around md:justify-start md:gap-2 py-2">
           {navItems.map((item) => {
@@ -30,14 +30,14 @@ const Navigation = () => {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'flex flex-col md:flex-row gap-1 h-auto py-2 px-3 md:px-4 relative transition-all',
+                    'flex flex-col md:flex-row gap-1 h-auto py-2 px-3 md:px-4 relative transition-all duration-200',
                     isActive && 'text-primary'
                   )}
                 >
                   {isActive && (
                     <>
-                      <div className="absolute inset-0 bg-primary/10 rounded-md" />
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-full md:hidden" />
+                      <div className="absolute inset-0 bg-primary/10 rounded-md border border-primary/20" />
+                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-full md:hidden shadow-sm" />
                     </>
                   )}
                   <Icon className={cn(

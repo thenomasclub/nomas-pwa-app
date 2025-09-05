@@ -6,14 +6,30 @@ import { serve } from "https://deno.land/std@0.192.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@12.17.0?target=deno";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
+    return new Response('Method not allowed', { 
+      status: 405,
+      headers: corsHeaders 
+    });
   }
 
   const stripeSecret = Deno.env.get("STRIPE_SECRET_KEY");
   if (!stripeSecret) {
-    return new Response("Stripe secret key not configured", { status: 500 });
+    return new Response("Stripe secret key not configured", { 
+      status: 500,
+      headers: corsHeaders 
+    });
   }
 
   const stripe = new Stripe(stripeSecret, {
@@ -29,7 +45,10 @@ serve(async (req) => {
     const { eventId, userId } = await req.json();
     
     if (!eventId || !userId) {
-      return new Response("Missing eventId or userId", { status: 400 });
+      return new Response("Missing eventId or userId", { 
+        status: 400,
+        headers: corsHeaders 
+      });
     }
 
     // Get event details
@@ -40,12 +59,18 @@ serve(async (req) => {
       .single();
 
     if (eventError || !event) {
-      return new Response("Event not found", { status: 404 });
+      return new Response("Event not found", { 
+        status: 404,
+        headers: corsHeaders 
+      });
     }
 
     // Check if event is free
     if (event.is_free || event.price_cents === 0) {
-      return new Response("Event is free - no payment required", { status: 400 });
+      return new Response("Event is free - no payment required", { 
+        status: 400,
+        headers: corsHeaders 
+      });
     }
 
     // Get user profile to check membership status
@@ -56,7 +81,10 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile) {
-      return new Response("User not found", { status: 404 });
+      return new Response("User not found", { 
+        status: 404,
+        headers: corsHeaders 
+      });
     }
 
     // Check if user has active premium membership
@@ -66,7 +94,10 @@ serve(async (req) => {
     // Premium events require payment from ALL users (including premium members)
     // Regular paid events are free for premium members
     if (isPremiumMember && !event.is_premium_event) {
-      return new Response("Premium members get free access to regular events", { status: 400 });
+      return new Response("Premium members get free access to regular events", { 
+        status: 400,
+        headers: corsHeaders 
+      });
     }
 
     // Check if user already has a booking for this event
@@ -78,23 +109,34 @@ serve(async (req) => {
       .single();
 
     if (bookingError && bookingError.code !== 'PGRST116') {
-      return new Response("Error checking existing booking", { status: 500 });
+      return new Response("Error checking existing booking", { 
+        status: 500,
+        headers: corsHeaders 
+      });
     }
 
     if (existingBooking) {
-      return new Response("User already has a booking for this event", { status: 400 });
+      return new Response("User already has a booking for this event", { 
+        status: 400,
+        headers: corsHeaders 
+      });
     }
+
+    // Get user email from auth user (more reliable than profiles table due to RLS)
+    const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(userId);
+    if (authError || !authUser.user?.email) {
+      return new Response("User email not found", { 
+        status: 404,
+        headers: corsHeaders 
+      });
+    }
+    const userEmail = authUser.user.email;
 
     // Get or create Stripe customer
     let customerId = profile.stripe_customer_id;
     if (!customerId) {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        return new Response("User not found", { status: 404 });
-      }
-
       const customer = await stripe.customers.create({
-        email: userData.user.email,
+        email: userEmail,
         metadata: {
           supabase_user_id: userId,
         },
@@ -140,7 +182,10 @@ serve(async (req) => {
 
     if (insertError) {
       console.error('Error creating booking:', insertError);
-      return new Response("Failed to create booking", { status: 500 });
+      return new Response("Failed to create booking", { 
+        status: 500,
+        headers: corsHeaders 
+      });
     }
 
     console.log(`✅ Payment intent created for event ${eventId}, user ${userId}, amount ${event.price_cents} IDR`);
@@ -155,7 +200,10 @@ serve(async (req) => {
       }),
       { 
         status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
       }
     );
 
@@ -165,7 +213,10 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
       }
     );
   }

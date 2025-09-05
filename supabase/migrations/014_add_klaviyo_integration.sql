@@ -14,14 +14,13 @@ DECLARE
     display_name TEXT;
 BEGIN
     -- First, create the profile as before
-    INSERT INTO public.profiles (id, email, display_name, profile_picture_url, date_of_birth, referral_code)
+    INSERT INTO public.profiles (id, email, display_name, profile_picture_url, date_of_birth)
     VALUES (
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'display_name', split_part(NEW.email, '@', 1)),
         NEW.raw_user_meta_data->>'profile_picture',
-        (NEW.raw_user_meta_data->>'date_of_birth')::DATE,
-        NEW.raw_user_meta_data->>'referral_code'
+        (NEW.raw_user_meta_data->>'date_of_birth')::DATE
     );
 
     -- Extract names from metadata

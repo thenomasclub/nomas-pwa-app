@@ -22,8 +22,14 @@ const SignupSuccessPage = () => {
     }
   };
 
-  // Handle payment success from Stripe
+  // Handle payment success from Stripe and mark onboarding complete
   useEffect(() => {
+    // Mark onboarding as completed when users reach this page
+    if (userId) {
+      const onboardingKey = `onboarding_completed_${userId}`;
+      localStorage.setItem(onboardingKey, 'true');
+    }
+
     if (paymentStatus === 'success') {
       toast.success('Payment successful! Please check your email to confirm your account.');
       
@@ -32,7 +38,7 @@ const SignupSuccessPage = () => {
       newParams.delete('payment');
       setSearchParams(newParams);
     }
-  }, [paymentStatus, searchParams, setSearchParams]);
+  }, [paymentStatus, searchParams, setSearchParams, userId]);
 
   return (
     <div className="h-screen overflow-hidden flex flex-col items-center justify-center bg-background px-4 overscroll-none">
@@ -54,15 +60,6 @@ const SignupSuccessPage = () => {
               We've sent a confirmation link to <span className="font-medium">{email}</span>.
               <br />Please check your inbox and click the link to activate your account.
             </p>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-              <p className="font-medium mb-2">💡 Don't see the email?</p>
-              <ul className="space-y-1 text-left">
-                <li>• Check your spam/junk folder</li>
-                <li>• Wait a few minutes for delivery</li>
-                <li>• If you already have an account, try <Link to="/login" className="underline font-medium">logging in instead</Link></li>
-              </ul>
-            </div>
           </>
         )}
         
