@@ -331,7 +331,12 @@ const EventsPage = () => {
           if (isFullyBooked) {
             toast.success('Added to waitlist! You\'ll be notified if a spot opens up.');
           } else {
-            toast.success('Booking confirmed! Check your email for details.');
+            toast.success('Booking confirmed! Check your Bookings page for event details and updates.', {
+              action: {
+                label: 'View Bookings',
+                onClick: () => navigate('/bookings')
+              }
+            });
           }
         }
       }
@@ -347,7 +352,12 @@ const EventsPage = () => {
   };
 
   const handlePaymentSuccess = async () => {
-    toast.success('Payment successful! Your booking has been confirmed.');
+    toast.success('Payment successful! Your booking has been confirmed.', {
+      action: {
+        label: 'View Bookings',
+        onClick: () => navigate('/bookings')
+      }
+    });
     await fetchEvents();
   };
 
