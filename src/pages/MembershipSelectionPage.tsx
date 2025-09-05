@@ -48,10 +48,10 @@ const MembershipSelectionPage = () => {
       price: '£50',
       description: 'Paid Membership with exclusive benefits',
       features: [
-        'Complimentary access to all member-only events',
-        '1 free padel session per month',
-        'Monthly Founders Dinner',
-        'Bi-weekly Nomas Minds talk series',
+        'A private community of experts in business, trading, fitness, travel & content creation',
+        'Exclusive monthly events hosted by The Nomas Club',
+        'Special perks & discounts across Bali: coffee shops, gyms, restaurants, nightlife & more',
+        'Business events that connect you to the right people',
         'Cancel anytime',
         'Premium customer support'
       ],
@@ -103,12 +103,6 @@ const MembershipSelectionPage = () => {
     <div className="min-h-screen overflow-y-auto flex flex-col items-center justify-center px-4 py-8" style={{ backgroundColor: '#0F1D0E' }}>
       <div className="w-full max-w-2xl animate-fade-in">
 
-        {/* Logo top-left */}
-        <img
-          src="https://uhkksexuecjfzmgdbwax.supabase.co/storage/v1/object/public/logo//SCR-20250716-knzf.png"
-          alt="Nomas Club logo"
-          className="absolute top-4 left-4 h-10 w-auto select-none"
-        />
 
         {/* Welcome Message */}
         <div className="mb-8 text-center pt-16">
@@ -214,7 +208,7 @@ const MembershipSelectionPage = () => {
         {/* Trust indicators */}
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-400 mb-2">
-            Secure payment • 30-day money-back guarantee • Cancel anytime
+            Secure payment
           </p>
           <div className="flex justify-center items-center gap-4 text-xs text-gray-400">
             <span>1,247+ members</span>
