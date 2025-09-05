@@ -73,12 +73,12 @@ const SignUpPage = () => {
         }
       }
 
-      // Sign up the user (with email confirmation disabled)
+      // Sign up the user (with email confirmation enabled)
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: undefined, // Disable email confirmation
+          emailRedirectTo: `${window.location.origin}/signup-success`,
           data: {
             profile_picture: profilePictureUrl || null,
             date_of_birth: dateOfBirth,
@@ -92,10 +92,9 @@ const SignUpPage = () => {
         throw signUpError;
       }
 
-      // Redirect to membership selection page
-      // Get user ID and redirect to membership selection
-      const userId = authData?.user?.id;
-      navigate('/membership-selection', { state: { email, firstName, userId } });
+      // Redirect to email confirmation page
+      // Users need to confirm their email before they can continue
+      navigate('/signup-success', { state: { email, firstName } });
     } catch (error: any) {
       console.error('Full signup error:', error);
       
