@@ -30,16 +30,58 @@ serve(async (req) => {
 
     if (firstName) profileData.first_name = firstName;
     if (lastName) profileData.last_name = lastName;
-    if (membershipTier) profileData.membership_tier = membershipTier;
     
-    // Add signup source and timestamp
-    profileData.signup_source = 'nomas_pwa';
-    profileData.signup_date = new Date().toISOString();
+    // Add custom properties for Klaviyo (these go in properties, not attributes)
+    profileData.properties = {
+      membership_tier: membershipTier || 'free',
+      signup_source: 'nomas_pwa',
+      signup_date: new Date().toISOString()
+    };
 
     console.log(`Adding user to Klaviyo: ${email}`);
 
-    // Add user to Klaviyo list
-    const response = await fetch(
+    // First, create/update the profile in Klaviyo
+    const profileResponse = await fetch(
+      'https://a.klaviyo.com/api/profiles/',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Klaviyo-API-Key ${klaviyoApiKey}`,
+          'Content-Type': 'application/json',
+          'revision': '2023-02-22',
+        },
+        body: JSON.stringify({
+          data: {
+            type: 'profile',
+            attributes: profileData
+          }
+        })
+      }
+    );
+
+    if (!profileResponse.ok) {
+      const errorText = await profileResponse.text();
+      console.error('Klaviyo profile creation error:', profileResponse.status, errorText);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Klaviyo profile creation failed',
+          details: errorText 
+        }), 
+        { 
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const profileData_response = await profileResponse.json();
+    const profileId = profileData_response.data.id;
+    console.log('Profile created successfully:', profileId);
+
+    // Now add the profile to the list
+    const listResponse = await fetch(
       `https://a.klaviyo.com/api/lists/${klaviyoListId}/relationships/profiles/`,
       {
         method: 'POST',
@@ -51,38 +93,23 @@ serve(async (req) => {
         body: JSON.stringify({
           data: [{
             type: 'profile',
-            attributes: profileData
+            id: profileId
           }]
         })
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Klaviyo API error:', response.status, errorText);
-      
-      // Don't fail the user creation if Klaviyo fails
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Klaviyo integration failed',
-          details: errorText 
-        }), 
-        { 
-          status: 200, // Return 200 so user creation doesn't fail
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+    if (listResponse.ok) {
+      console.log('Successfully added to Klaviyo list:', email);
+    } else {
+      console.log('Profile created but list addition failed - this is OK');
     }
-
-    const data = await response.json();
-    console.log('Successfully added to Klaviyo:', email);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'User added to Klaviyo successfully',
-        klaviyoResponse: data 
+        profileId: profileId 
       }), 
       { 
         status: 200,
