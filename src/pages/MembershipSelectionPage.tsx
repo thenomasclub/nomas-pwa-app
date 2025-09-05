@@ -11,12 +11,13 @@ interface LocationState {
   email: string;
   firstName: string;
   userId: string;
+  isFirstTime?: boolean;
 }
 
 const MembershipSelectionPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { email, firstName, userId } = (location.state as LocationState) || {};
+  const { email, firstName, userId, isFirstTime } = (location.state as LocationState) || {};
   const [selectedPlan, setSelectedPlan] = useState<string>('monthly');
   const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -99,6 +100,12 @@ const MembershipSelectionPage = () => {
     navigate('/signup-success', { state: { email } });
   };
 
+  const handleSkipForNow = () => {
+    // For first-time users, redirect them to the main app
+    toast.success('Welcome! You can upgrade to premium anytime from your profile.');
+    navigate('/home');
+  };
+
   return (
     <div className="min-h-screen overflow-y-auto flex flex-col items-center justify-center px-4 py-8" style={{ backgroundColor: '#0F1D0E' }}>
       <div className="w-full max-w-2xl animate-fade-in">
@@ -106,15 +113,36 @@ const MembershipSelectionPage = () => {
 
         {/* Welcome Message */}
         <div className="mb-8 text-center pt-16">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3 text-white">
-            Welcome, {firstName}!
-          </h1>
-          <p className="text-xl text-gray-200 max-w-md mx-auto mb-2">
-            Choose the perfect membership to unlock your potential
-          </p>
-          <p className="text-sm text-gray-300">
-            You can upgrade or downgrade anytime
-          </p>
+          {isFirstTime ? (
+            <>
+              <div className="mb-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-500/30 rounded-full text-green-300 text-sm font-medium">
+                  🎉 Email confirmed successfully!
+                </div>
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3 text-white">
+                Welcome to The Nomas Club, {firstName}!
+              </h1>
+              <p className="text-xl text-gray-200 max-w-lg mx-auto mb-2">
+                You're one step away from joining our exclusive community of entrepreneurs, traders, and creators.
+              </p>
+              <p className="text-sm text-gray-300">
+                Choose your membership level to get started
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-3 text-white">
+                Welcome, {firstName}!
+              </h1>
+              <p className="text-xl text-gray-200 max-w-md mx-auto mb-2">
+                Choose the perfect membership to unlock your potential
+              </p>
+              <p className="text-sm text-gray-300">
+                You can upgrade or downgrade anytime
+              </p>
+            </>
+          )}
         </div>
 
         {/* Membership Plans */}
@@ -195,6 +223,17 @@ const MembershipSelectionPage = () => {
               </>
             )}
           </Button>
+          
+          {isFirstTime && (
+            <Button
+              onClick={handleSkipForNow}
+              variant="outline"
+              className="w-full h-12 border-gray-600 text-gray-300 hover:bg-gray-700/50 hover:text-white"
+              size="lg"
+            >
+              Skip for now, continue with free access
+            </Button>
+          )}
 
           <Button
             variant="ghost"

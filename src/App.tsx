@@ -1,7 +1,8 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect, lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect, lazy, Suspense, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
+import { useMembership } from '@/hooks/useMembership';
 import { Toaster } from 'sonner';
 import { Analytics } from '@vercel/analytics/react';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -34,6 +35,45 @@ const PageLoader = () => (
   </div>
 );
 
+// Auth handler component to manage first-time user redirects
+const AuthHandler = () => {
+  const { user } = useAuthStore();
+  const { membershipTier, loading: membershipLoading } = useMembership();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const hasRedirected = useRef(false);
+
+  useEffect(() => {
+    // Only redirect if:
+    // 1. User is logged in
+    // 2. User has free tier (new user)
+    // 3. Not already on membership pages
+    // 4. Haven't redirected before in this session
+    if (
+      user && 
+      !membershipLoading && 
+      membershipTier === 'free' && 
+      !hasRedirected.current &&
+      !location.pathname.includes('/membership') &&
+      !location.pathname.includes('/signup') &&
+      location.pathname !== '/' // Don't redirect from homepage
+    ) {
+      console.log('Redirecting first-time user to membership selection');
+      hasRedirected.current = true;
+      navigate('/membership-selection', { 
+        state: { 
+          email: user.email, 
+          firstName: user.user_metadata?.display_name || user.email?.split('@')[0],
+          userId: user.id,
+          isFirstTime: true
+        } 
+      });
+    }
+  }, [user, membershipTier, membershipLoading, navigate, location.pathname]);
+
+  return null; // This component doesn't render anything
+};
+
 function App() {
   const { setUser, setSession, setLoading } = useAuthStore();
 
@@ -65,6 +105,7 @@ function App() {
       />
       <Analytics />
       <InstallPrompt />
+      <AuthHandler />
       <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<HomePage />} />
