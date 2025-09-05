@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/store/authStore';
 import { useMembership } from '@/hooks/useMembership';
@@ -24,6 +24,7 @@ interface UserStats {
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, signOut } = useAuthStore();
   const { 
     isPremiumMember, 
@@ -48,6 +49,23 @@ const ProfilePage = () => {
       fetchUserStats();
     }
   }, [user]);
+
+  // Handle payment status from Stripe redirects
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus) {
+      if (paymentStatus === 'success') {
+        toast.success('Payment successful! Your membership has been upgraded.');
+      } else if (paymentStatus === 'canceled') {
+        toast.info('Payment was canceled. You can try again anytime.');
+      }
+      
+      // Clean up URL parameters
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('payment');
+      setSearchParams(newParams);
+    }
+  }, [searchParams, setSearchParams]);
 
   const fetchUserStats = async () => {
     if (!user) return;
@@ -181,7 +199,7 @@ const ProfilePage = () => {
     setLoading(true);
     try {
       const response = await supabase.functions.invoke('create-checkout-session', {
-        body: { plan, userId: user.id }
+        body: { plan, userId: user.id, redirectTo: 'profile' }
       });
 
       if (response.error) {

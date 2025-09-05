@@ -47,7 +47,7 @@ serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
   try {
-    const { plan, userId } = await req.json();
+    const { plan, userId, redirectTo } = await req.json();
     
     if (!plan || !userId) {
       return new Response("Missing plan or userId", { 
@@ -134,8 +134,12 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/signup-success?payment=success`,
-      cancel_url: `${req.headers.get('origin')}/membership-selection?payment=canceled`,
+      success_url: redirectTo === 'profile' 
+        ? `${req.headers.get('origin')}/profile?payment=success`
+        : `${req.headers.get('origin')}/signup-success?payment=success`,
+      cancel_url: redirectTo === 'profile' 
+        ? `${req.headers.get('origin')}/profile?payment=canceled`
+        : `${req.headers.get('origin')}/membership-selection?payment=canceled`,
       metadata: {
         supabase_user_id: userId,
         plan: plan,
