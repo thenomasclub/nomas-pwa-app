@@ -5,7 +5,17 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, Lock, ArrowRight, Calendar, Upload, X, User, Eye, EyeOff } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  ArrowRight,
+  Calendar,
+  Upload,
+  X,
+  User,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
@@ -62,9 +72,9 @@ const SignUpPage = () => {
             console.warn('Profile picture upload failed:', uploadError);
             // Continue with signup even if upload fails
           } else {
-            const { data: { publicUrl } } = supabase.storage
-              .from('avatars')
-              .getPublicUrl(filePath);
+            const {
+              data: { publicUrl },
+            } = supabase.storage.from('avatars').getPublicUrl(filePath);
             profilePictureUrl = publicUrl;
           }
         } catch (error) {
@@ -74,44 +84,80 @@ const SignUpPage = () => {
       }
 
       // Sign up the user (with email confirmation enabled)
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/signup-success`,
-          data: {
-            profile_picture: profilePictureUrl || null,
-            date_of_birth: dateOfBirth,
-            display_name: firstName,
+      const { data: authData, error: signUpError } = await supabase.auth.signUp(
+        {
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/signup-success`,
+            data: {
+              profile_picture: profilePictureUrl || null,
+              date_of_birth: dateOfBirth,
+              display_name: firstName,
+            },
           },
-        },
-      });
+        }
+      );
 
       if (signUpError) {
         console.error('Signup error details:', signUpError);
         throw signUpError;
       }
 
+      const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/add-to-klaviyo`;
+
+      if (authData?.user) {
+        try {
+          await fetch(FUNCTION_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY}`,
+            },
+            body: JSON.stringify({
+              email: authData.user.email,
+              firstName: firstName,
+              lastName: '', // optional, add if you collect
+              membershipTier: 'free', // default for new signup
+            }),
+          });
+          console.log('User sent to Klaviyo successfully');
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            console.error('Failed to add user to Klaviyo:', error.message);
+          } else {
+            console.error('Failed to add user to Klaviyo:', error);
+          }
+        }
+      }
+
       // Redirect to email confirmation page
       // Users need to confirm their email before they can continue
       const userId = authData?.user?.id;
       navigate('/signup-success', { state: { email, firstName, userId } });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Full signup error:', error);
-      
-      // Provide more specific error messages
-      let userFriendlyMessage = error.message;
-      
-      if (error.message?.includes('already registered')) {
-        userFriendlyMessage = 'An account with this email already exists. Please try logging in instead.';
-      } else if (error.message?.includes('Password')) {
-        userFriendlyMessage = 'Password is too weak. Please include uppercase, lowercase, and numbers.';
-      } else if (error.message?.includes('database')) {
-        userFriendlyMessage = 'Database connection issue. Please try again in a moment.';
-      } else if (error.message?.includes('Invalid input')) {
-        userFriendlyMessage = 'Please check all fields are filled correctly.';
+
+      let userFriendlyMessage =
+        'An unexpected error occurred. Please try again.';
+
+      if (error instanceof Error) {
+        const message = error.message;
+
+        if (message.includes('already registered')) {
+          userFriendlyMessage =
+            'An account with this email already exists. Please try logging in instead.';
+        } else if (message.includes('Password')) {
+          userFriendlyMessage =
+            'Password is too weak. Please include uppercase, lowercase, and numbers.';
+        } else if (message.includes('database')) {
+          userFriendlyMessage =
+            'Database connection issue. Please try again in a moment.';
+        } else if (message.includes('Invalid input')) {
+          userFriendlyMessage = 'Please check all fields are filled correctly.';
+        }
       }
-      
+
       setError(userFriendlyMessage);
     } finally {
       setLoading(false);
@@ -121,7 +167,6 @@ const SignUpPage = () => {
   return (
     <div className="min-h-screen overflow-y-auto flex flex-col items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-sm animate-fade-in">
-
         {/* Logo top-left */}
         <img
           src="https://uhkksexuecjfzmgdbwax.supabase.co/storage/v1/object/public/logo//SCR-20250716-knzf.png"
@@ -197,7 +242,11 @@ const SignUpPage = () => {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -209,16 +258,19 @@ const SignUpPage = () => {
             <Label htmlFor="profile-picture">Profile Picture</Label>
             <div className="relative">
               {!profilePicturePreview ? (
-                <label 
+                <label
                   htmlFor="profile-picture"
                   className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:border-muted-foreground/50 transition-colors"
                 >
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Click to upload</span> or drag and drop
+                      <span className="font-medium">Click to upload</span> or
+                      drag and drop
                     </p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                    <p className="text-xs text-muted-foreground">
+                      PNG, JPG up to 10MB
+                    </p>
                   </div>
                   <input
                     id="profile-picture"
@@ -268,8 +320,6 @@ const SignUpPage = () => {
             </p>
           </div>
 
-
-
           <div className="flex flex-col space-y-3 pb-4">
             <Button
               type="submit"
@@ -286,10 +336,13 @@ const SignUpPage = () => {
                 </>
               )}
             </Button>
-            
+
             <p className="text-sm text-center text-muted-foreground">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary font-medium hover:underline">
+              <Link
+                to="/login"
+                className="text-primary font-medium hover:underline"
+              >
                 Sign in
               </Link>
             </p>
@@ -300,4 +353,4 @@ const SignUpPage = () => {
   );
 };
 
-export default SignUpPage; 
+export default SignUpPage;
